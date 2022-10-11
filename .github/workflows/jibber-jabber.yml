@@ -1,0 +1,12 @@
+---
+# yaml file for github actions
+name: jibber-jabber workflow
+on:
+  push:
+    branches:
+      - main
+
+# jobs run concurrently by default. If they need to run sequentially, dependencies can be defined with jobs.<job_id>.needs
+jobs:
+  production-deploy:
+    runs-on: ubuntu-latest #may add macos-latest and windows-latest if we have that problem. 
