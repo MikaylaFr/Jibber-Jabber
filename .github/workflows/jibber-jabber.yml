@@ -8,5 +8,16 @@ on:
 
 # jobs run concurrently by default. If they need to run sequentially, dependencies can be defined with jobs.<job_id>.needs
 jobs:
-  production-deploy:
+  build:
     runs-on: ubuntu-latest #may add macos-latest and windows-latest if we have that problem. 
+    steps:
+      - uses: actions/checkout@v3
+      - name: install python3
+        uses: actions/setup-python@v4
+      - name: install dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: run tests with pytest/unittest
+        # run: pytest if we are using pytest
+        # python3 -m unittest <test file name> 
+        
