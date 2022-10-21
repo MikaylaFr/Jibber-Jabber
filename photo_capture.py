@@ -2,32 +2,39 @@ import os
 import cv2
 import numpy
 
-# initialize camera
-cam = cv2.VideoCapture(0)
+# photo capture function
+# takes a photo with your computer's webcam
+# saves it in current directory
 
-cv2.namedWindow('Jibber-Jabber login')
+def photo_capture():
 
-# read input using the camera
-result, image = cam.read()
+    # initialize camera
+    cam = cv2.VideoCapture(0)
 
-# print(result)
-img_counter = 0
+    # name the popup window
+    cv2.namedWindow('Jibber-Jabber login')
 
-if result:
-    # show image
-    cv2.imshow("person", image)
+    # read input using the camera
+    result, image = cam.read()
 
-    # save the image
-    cv2.imwrite("person.png", image)
+    if result:
+        # show image
+        cv2.imshow("person", image)
 
-    # show image for 5 seconds
-    cv2.waitKey(5000)
-    cv2.destroyWindow("person")
+        # save the image
+        cv2.imwrite("person.png", image)
 
-    #
-else:
-    print("No image detected.")
+        # show image for 5 seconds
+        cv2.waitKey(5000)
+        cv2.destroyWindow("person")
 
-cam.release()
+        #
+    else:
+        print("No image detected.")
 
-# cam.destroyAllWindows()
+    cam.release()
+
+    # cam.destroyAllWindows()
+
+#run function
+photo_capture()
