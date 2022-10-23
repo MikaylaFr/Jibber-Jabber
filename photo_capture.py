@@ -32,9 +32,12 @@ def photo_capture():
     else:
         print("No image detected.")
 
+    # this print statement does not print
+    # unclear when the camera releases. 
+    print("camera about to release")
     cam.release()
 
     # cam.destroyAllWindows()
 
 #run function
-photo_capture()
+#photo_capture()

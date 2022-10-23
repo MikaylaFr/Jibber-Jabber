@@ -10,8 +10,11 @@ def login():
     def validateLogin(username): #also need to add photo as an argument
         # need to validate username
         print("username entered : ", username.get())
+        # take photo
+        photo_capture()
+        # compare name of file to photo that is already saved
+        # if there is no saved photo, login is not validated
         # how to validate the photo?
-        
         return
 
     # window
@@ -25,8 +28,8 @@ def login():
     usernameEntry = Entry(tkWindow, textvariable=username).grid(row=0, column=1)
 
     # partial funciton doesn't seem to be doing anything special since we called all the args?
-    # validateLogin = partial(validateLogin, username)
-    validateLogin = validateLogin(username)
+    validateLogin = partial(validateLogin, username)
+    # validateLogin = validateLogin(username)
 
     # login button
     loginButton = Button(tkWindow, text="Login", command=validateLogin).grid(row=4, column=0)
