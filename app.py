@@ -5,6 +5,13 @@ from tkinter import ttk
 from functools import partial
 from photo_capture import photo_capture
 
+class App(Tk): 
+    def __init__(self, *args, **kwargs):
+        Tk.__init__(self, *args, **kwargs)
+
+        container = Frame(self)
+        container.pack(side="top", fill = "both", expand=True)
+
 
 def login():
     def validateLogin(username): #also need to add photo as an argument
@@ -38,4 +45,7 @@ def login():
     registerButton = Button(tkWindow, text="Create Account").grid(row=10, column=0)
     tkWindow.mainloop() 
 
-login()
+#def register():
+
+if __name__ == "__main__":
+    login()
