@@ -11,14 +11,15 @@ import json
 
 # Print to logs
 # TODO Change output to file later (may not need this)
-def print_log(message, exception = False):
+def print_log(message, exception:Exception = None) -> str:
     #f = open("logs.txt", "a")
     now = datetime.now()
-    log = now.strftime("%H:%M:%S") + "  "
+    log = now.strftime("%H:%M:%S") + ":  "
     log += message
     if exception:
-        log += " Exception: " + exception
+        log += " Exception: " + str(exception)
     print(log)
+    return log
     #f.write(log)
     #f.close()
 
@@ -30,29 +31,37 @@ class Server:
         # dict of clients represented as dict. 2D dict
         self.clients = {}
         self.buffer_size = 1024
+        self.ip_address = None
+        self.port = None
+        self.hostname = None
+        self.server_socket = None
+        self.test_client = None
 
     # Get the hosts ip address
-    def set_ip_and_port(self, local, port) -> int:
+    def set_ip(self, local:bool=False) -> int:
         try:
-            self.port = port
             if local:
                 self.ip_address = "127.0.0.1"
             else:
                 self.hostname = socket.gethostname()
                 self.ip_address = socket.gethostbyname(self.hostname)
-        except Exception:
-            print_log("Error: Could not get host ip", Exception)
+        except Exception as err:
+            print_log("Error: Could not get host ip", err)
             return 1
-                
+   
+    # Set port
+    def set_port(self, port:int):
+        self.port = port
+
     # Creates socket, binds socket, and sets socket to listening
     def create_server_socket(self) -> int:
         try:
             self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.server_socket.bind((self.ip_address, self.port))
             self.server_socket.listen()
-            print_log("Socket created, listening on port " + self.port + ", with IP " + self.ip_address)
-        except Exception:
-            print_log("Error: Could not create socket", Exception)
+            print_log("Socket created, listening on port " + str(self.port) + ", with IP " + self.ip_address)
+        except Exception as err:
+            print_log("Error: Could not create socket", err)
             return 1
 
     def request_username(self, client_socket:any) -> any:
@@ -64,19 +73,25 @@ class Server:
         message = {"type": "REQ","request": request}
         try:
             client_socket.send(bytes(json.dumps(message), encoding="utf-8"))
-        except:
-            print_log("Failed to get client's username")
+        except Exception as err:
+            print_log("Failed to send request", err)
             return 1
+        
 
+    def accept_connection(self, test:bool=False) -> tuple:
+        try:
+            client_socket, address = self.server_socket.accept()
+        except Exception as err:
+            print_log("Failed to accept connection", err)
+        # Because testing this indiv function, need to clean up within the thread
+        if test:
+            self.test_client = client_socket
+        return (client_socket, address)
     # Listens for incoming connection. Once connection is found, requests username from the client
     # Adds all info to client dict. Creates a new thread to handle new client
     def listen_for_connections(self):
         while True:
-            try:
-                client_socket, address = self.server_socket.accept()
-            except:
-                print_log("Failed to accept connection")
-                return 1
+            client_socket, address = self.accept_connection()
             print_log(f"New connection: {str(address)}")
 
             # Request username            
@@ -95,10 +110,10 @@ class Server:
 
             # Create new thread to listen to client for incoming messages. 
             # Call handler for client connection
-            thread = threading.Thread(target=self.listen_to_client, args=(client_socket, client_username))
+            thread = threading.Thread(target=self.listen_for_client_message, args=(client_socket, client_username))
             thread.start()
 
-    def listen_to_client(self, client:any, username:str):
+    def listen_for_client_message(self, client:any, username:str, test:bool=False):
         while True:
             try:
                 incoming_message = client.recv(1024)
@@ -107,7 +122,8 @@ class Server:
                 self.clients.pop(client)
                 client.close()
                 break
-
+            if test:
+                break
     # Send message to all clients. Encode default is UTF-8
     def broadcast(self, message:str, client:any=None, username:str=""):
         # Construct JSON to send
@@ -125,16 +141,21 @@ class Server:
                 if curr_client == client:
                     continue
                 curr_client.send(bytes(json.dumps(broadcast_message), encoding="utf-8"))
-        except:
-            print_log("Could not send message")
+        except Exception as err:
+            print_log("Could not send message", err)
 
-    # TODO: Signal handler or variable to stop listening for connections and close server
     @classmethod
-    def start_server(cls, local:bool = False, port:int = 1234)->object:
+    def start_server(cls, local:bool = False, port:int = 1234, test:bool = False)->object:
         new_server = cls()
-        if new_server.set_ip_and_port(local, port) or new_server.create_server_socket():
+        new_server.set_port()
+        if new_server.set_ip(local) or new_server.create_server_socket():
             print_log("Could not start server!")
             return 1
-        thread = threading.Thread(target=new_server.listen_for_connections, args=())
-        thread.start()
+        if not test:
+            thread = threading.Thread(target=new_server.listen_for_connections, args=())
+            thread.start()
         return new_server
+
+# TODO: Signal handler or variable to stop listening for connections and close server
+    def close_server(self):
+        pass
