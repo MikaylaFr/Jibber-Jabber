@@ -20,11 +20,13 @@ class App(Tk):
         self.frames["StartPage"] = StartPage(parent=container, controller=self)
         self.frames["Login"] = Login(parent=container, controller=self)
         self.frames["Register"] = Register(parent=container, controller = self)
+        self.frames["ConfirmRegistration"] = ConfirmRegistration(parent=container, controller=self)
         self.frames["Chat"] = Chat(parent=container, controller=self)
 
         self.frames["StartPage"].grid(row=0, column=0, sticky="nsew")
         self.frames["Login"].grid(row=0, column = 0, sticky="nsew")
         self.frames["Register"].grid(row=0, column=0, sticky="nsew")
+        self.frames["ConfirmRegistration"].grid(row=0, column=0, sticky="nsew")
         self.frames["Chat"].grid(row=0, column=0, sticky="nsew")
 
         #show the first frame when the app opens
@@ -89,6 +91,12 @@ class Register(Frame):
         print("username entered: ", username.get())
         photo_capture()
         return
+
+class ConfirmRegistration(Frame):
+    def __init__(self, parent, controller):
+        Frame.__init__(self, parent)
+        self.controller = controller
+        #if photo was good, take user to chat page, if photo was bad, retake photo...
 
 class Chat(Frame):
     def __init__(self, parent, controller):

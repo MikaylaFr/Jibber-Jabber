@@ -1,5 +1,6 @@
 import os
 import cv2
+import face_recognition
 import numpy
 
 # photo capture function
@@ -26,6 +27,7 @@ def photo_capture():
 
         # show image for 5 seconds
         cv2.waitKey(5000)
+        # exit window
         cv2.destroyWindow("person")
 
         #
@@ -35,5 +37,24 @@ def photo_capture():
     # exits the camera
     cam.release()
 
-#run function
-#photo_capture()
+def identify_user(knownImage):
+    knownImage = face_recognition.load_image_file("person.png")
+
+    # 0 refers to the 
+    cam = cv2.VideoCapture(0)
+    cv2.namedWindow('Jibber-Jabber login')
+    result, image = cam.read()
+
+    if result:
+        unknownImage = image
+    else:
+        print('no image detected')
+    
+    userEncoding = face_recognition.face_encodings(knownImage)[0]
+    unknownEncoding = face_recognition.face_encodings(unknownImage)[0]
+
+    comparison = face_recognition.compare_faces([userEncoding], unknownEncoding)
+
+
+
+
