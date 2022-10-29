@@ -8,6 +8,7 @@ import socket
 from unittest.mock import Mock
 import threading
 import json
+from time import sleep
 
 
 class ServerSetupTests(unittest.TestCase):
@@ -59,6 +60,7 @@ class ServerSetupTests(unittest.TestCase):
 class ServerAcceptConnectionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
+        print("Setting up class")
         cls.server = Server()
         cls.server.set_port(1234)
         cls.server.set_ip(True)
@@ -66,43 +68,68 @@ class ServerAcceptConnectionTests(unittest.TestCase):
         cls.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def test_7_accept_connection(self):
+        print("starting test 7")
         thread = threading.Thread(target=self.server.accept_connection, args=(True,))
         thread.start()
         self.assertEqual(None, self.client.connect((self.server.ip_address, self.server.port)))
     
     @classmethod
-    def tearDown(self) -> None:
+    def tearDownClass(self) -> None:
         self.client.close()
         self.server.server_socket.close()
-        self.server.test_client.close()
+        #self.server.test_client.close()
 
 class ServerClientInitComms(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
+        print("Setting up comms class")
         cls.server = Server()
         cls.server.set_port(1234)
         cls.server.set_ip(True)
         cls.server.create_server_socket()
 
+        print("Connecting client and server")
         cls.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         cls.thread = threading.Thread(target=cls.server.accept_connection, args=(True,))
         cls.thread.start()
         cls.client.connect((cls.server.ip_address, cls.server.port))
-        cls.client_rcv_buffer = None
 
     def test_8_send_request(self):
+        print("Starting test 8")
         def client_recv_thread(self):
             buffer = self.client.recv(1024).decode("utf-8")
-            self.client_rcv_buffer = json.loads(buffer)
+            #self.client_recv_buffer = json.loads(buffer)
+            #print(self.client_recv_buffer)
+            expected = '{"type": "REQ", "request": "testing"}'
+            try:
+                self.assertEqual(buffer, expected)
+            except:
+                print("fail")
         thread = threading.Thread(target=client_recv_thread, args=(self,))
         thread.start()
-        self.assertEqual(None, self.server.send_request(self.server.test_client, "testing"))
-        expected = {"type": "REQ", "request": "testing"}
-        self.assertEqual(self.client_rcv_buffer, expected)
+        # Give moment for client to start listening
+        sleep(0.05)
+        self.server.send_request(self.server.test_client, "testing")
         
+        
+        
+    def test_9_request_username(self):
+        def client_response():
+            print("Waiting to receive message from server")
+            server_req = self.client.recv(1024).decode("utf-8")
+            print("Recd something")
+            expected = '{"type": "REQ", "request": "username"}'
+            self.assertEqual(server_req, expected)
+            self.client.send("Testy Test".encode("utf-8"))
+        thread = threading.Thread(target=client_response)
+        thread.start()
+        # Give moment for client to start listening
+        sleep(0.1)
+        print("Sending request")
+        self.assertEqual(self.server.request_username(self.client, True).decode("utf-8"), "Testy Test")
 
     @classmethod
-    def tearDown(self) -> None:
+    def tearDownClass(self) -> None:
         self.client.close()
         self.server.server_socket.close()
         self.server.test_client.close()

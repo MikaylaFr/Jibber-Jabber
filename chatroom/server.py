@@ -64,9 +64,15 @@ class Server:
             print_log("Error: Could not create socket", err)
             return 1
 
-    def request_username(self, client_socket:any) -> any:
+    def request_username(self, client_socket:any, test:bool = False) -> any:
+        print_log("Requesting username")
+        # Since we have to call accept_connection via a new thread, we are not able to 
+        # get the new client socket created in accept() from the thread in the test unit
+        if test:
+            client_socket = self.test_client
         if self.send_request(client_socket, "username"):
             return 1
+        print("Waiting for client response")
         return client_socket.recv(self.buffer_size)
 
     def send_request(self, client_socket:any, request:str) -> int:
@@ -81,8 +87,9 @@ class Server:
     def accept_connection(self, test:bool=False) -> tuple:
         try:
             client_socket, address = self.server_socket.accept()
+            print_log(f"\nNew connection: {str(address)}")
         except Exception as err:
-            print_log("Failed to accept connection", err)
+            print_log("\nFailed to accept connection", err)
         # Because testing this indiv function, need to clean up within the thread
         if test:
             self.test_client = client_socket
@@ -92,8 +99,7 @@ class Server:
     def listen_for_connections(self):
         while True:
             client_socket, address = self.accept_connection()
-            print_log(f"New connection: {str(address)}")
-
+        
             # Request username            
             client_username = self.request_username(client_socket)
             # Request for username failed, close connection and continue to listen
