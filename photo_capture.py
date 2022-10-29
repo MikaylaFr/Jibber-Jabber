@@ -38,23 +38,30 @@ def photo_capture():
     cam.release()
 
 def identify_user(knownImage):
-    knownImage = face_recognition.load_image_file("person.png")
+    knownImage = face_recognition.load_image_file(knownImage)
 
-    # 0 refers to the 
+    # take photo to compare to saved photo
+    # 0 refers to the camera number, most people only have one camera
     cam = cv2.VideoCapture(0)
     cv2.namedWindow('Jibber-Jabber login')
     result, image = cam.read()
+
+    cv2.imshow('unknown image', image)
+
+    cv2.waitKey(3000)
 
     if result:
         unknownImage = image
     else:
         print('no image detected')
     
+    # photo must be encoded to be compared   
     userEncoding = face_recognition.face_encodings(knownImage)[0]
     unknownEncoding = face_recognition.face_encodings(unknownImage)[0]
 
     comparison = face_recognition.compare_faces([userEncoding], unknownEncoding)
+    print("Result: ", comparison)
 
 
 
-
+identify_user('person.png')

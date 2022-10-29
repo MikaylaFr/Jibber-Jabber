@@ -13,4 +13,7 @@ tomli==2.0.1
 opencv-python
 numpy
 functools
+cmake
+wheel
+dlib
 face_recognition
