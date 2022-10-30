@@ -84,7 +84,7 @@ class Register(Frame):
         usernameLabel = Label(self, text="create username").grid(row=0, column=0)
         username = StringVar()
         usernameEntry = Entry(self, textvariable=username).grid(row=4, column=0)
-        if not 
+        # validate username
         photoLabel = Label(self, text="take webcam photo for facial recognition login in lieu of password").grid(row=8, column=0)
         photoButton = Button(self, text="take photo with webcam", command=lambda: [self.photoCapture(username), controller.show_frame("Chat")]).grid(row=12, column=0)
 
