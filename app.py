@@ -15,7 +15,6 @@ class App(Tk):
         container.pack(side="top", fill = "both", expand=True)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight = 1)
-        # container.title('Jibber-Jabber')
         self.title('Jibber-Jabber')
 
         self.frames = {}
@@ -44,8 +43,6 @@ class StartPage(Frame):
         self.controller = controller
         label = Label(self, text="Jibber Jabber App")
         label.pack(side="top", fill="x", pady=10)
-        # Title = self.title('Jibber-Jabber')
-        # Frame.title("jibber-jabber")
         #login button
         loginButton = Button(self, text="Login", command=lambda: controller.show_frame("Login"))
 
@@ -87,12 +84,16 @@ class Register(Frame):
         usernameLabel = Label(self, text="create username").grid(row=0, column=0)
         username = StringVar()
         usernameEntry = Entry(self, textvariable=username).grid(row=4, column=0)
+        if not 
         photoLabel = Label(self, text="take webcam photo for facial recognition login in lieu of password").grid(row=8, column=0)
         photoButton = Button(self, text="take photo with webcam", command=lambda: [self.photoCapture(username), controller.show_frame("Chat")]).grid(row=12, column=0)
 
     def photoCapture(self, username):
-        print("username entered: ", username.get())
+        enteredName = username.get()
+        print("username entered: ", enteredName)
         photo_capture()
+        #add photo and username to database 
+        #make sure 
         return
 
 class ConfirmRegistration(Frame):
