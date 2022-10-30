@@ -64,4 +64,4 @@ def identify_user(knownImage):
 
 
 
-identify_user('person.png')
+#identify_user('person.png')

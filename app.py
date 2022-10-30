@@ -15,6 +15,8 @@ class App(Tk):
         container.pack(side="top", fill = "both", expand=True)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight = 1)
+        # container.title('Jibber-Jabber')
+        self.title('Jibber-Jabber')
 
         self.frames = {}
         self.frames["StartPage"] = StartPage(parent=container, controller=self)
@@ -42,7 +44,8 @@ class StartPage(Frame):
         self.controller = controller
         label = Label(self, text="Jibber Jabber App")
         label.pack(side="top", fill="x", pady=10)
-
+        # Title = self.title('Jibber-Jabber')
+        # Frame.title("jibber-jabber")
         #login button
         loginButton = Button(self, text="Login", command=lambda: controller.show_frame("Login"))
 
