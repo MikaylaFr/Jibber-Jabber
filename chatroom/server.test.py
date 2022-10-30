@@ -60,7 +60,6 @@ class ServerSetupTests(unittest.TestCase):
 class ServerAcceptConnectionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        print("Setting up class")
         cls.server = Server()
         cls.server.set_port(1234)
         cls.server.set_ip(True)
@@ -68,7 +67,6 @@ class ServerAcceptConnectionTests(unittest.TestCase):
         cls.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def test_7_accept_connection(self):
-        print("starting test 7")
         thread = threading.Thread(target=self.server.accept_connection, args=(True,))
         thread.start()
         self.assertEqual(None, self.client.connect((self.server.ip_address, self.server.port)))
@@ -77,29 +75,23 @@ class ServerAcceptConnectionTests(unittest.TestCase):
     def tearDownClass(self) -> None:
         self.client.close()
         self.server.server_socket.close()
-        #self.server.test_client.close()
 
 class ServerClientInitComms(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        print("Setting up comms class")
         cls.server = Server()
         cls.server.set_port(1234)
         cls.server.set_ip(True)
         cls.server.create_server_socket()
 
-        print("Connecting client and server")
         cls.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         cls.thread = threading.Thread(target=cls.server.accept_connection, args=(True,))
         cls.thread.start()
         cls.client.connect((cls.server.ip_address, cls.server.port))
 
     def test_8_send_request(self):
-        print("Starting test 8")
         def client_recv_thread(self):
             buffer = self.client.recv(1024).decode("utf-8")
-            #self.client_recv_buffer = json.loads(buffer)
-            #print(self.client_recv_buffer)
             expected = '{"type": "REQ", "request": "testing"}'
             try:
                 self.assertEqual(buffer, expected)
@@ -111,13 +103,9 @@ class ServerClientInitComms(unittest.TestCase):
         sleep(0.05)
         self.server.send_request(self.server.test_client, "testing")
         
-        
-        
     def test_9_request_username(self):
         def client_response():
-            print("Waiting to receive message from server")
             server_req = self.client.recv(1024).decode("utf-8")
-            print("Recd something")
             expected = '{"type": "REQ", "request": "username"}'
             self.assertEqual(server_req, expected)
             self.client.send("Testy Test".encode("utf-8"))
@@ -125,14 +113,42 @@ class ServerClientInitComms(unittest.TestCase):
         thread.start()
         # Give moment for client to start listening
         sleep(0.1)
-        print("Sending request")
         self.assertEqual(self.server.request_username(self.client, True).decode("utf-8"), "Testy Test")
 
+        # TODO: Test broadcast, test listen_for_client_message, test listen for connections
     @classmethod
     def tearDownClass(self) -> None:
         self.client.close()
         self.server.server_socket.close()
         self.server.test_client.close()
+
+class ServerObjTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.server = None
+        cls.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def test_10_start_server(self):
+        self.server = Server.start_server(True)
+        self.assertIsInstance(self.server, Server)
+    
+    def test_11_full_connect_client(self):
+        self.client.connect((self.server.ip_address, self.server.port))
+        # Respond to request for username
+        server_req = self.client.recv(1024).decode("utf-8")
+        expected = '{"type": "REQ", "request": "username"}'
+        self.assertEqual(server_req, expected)
+
+        # Test if broadcasted
+        self.client.send("Purple Cat".encode("utf-8"))
+        # Wait for server to broadcast
+        msg = self.client.recv(1024).decode("utf-8")
+        expected = '{}'
+        self.assertEqual(msg, expected)
+    
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.server.server_socket.close()
 
 # Load tests in order
 def load_tests(loader, tests, pattern):

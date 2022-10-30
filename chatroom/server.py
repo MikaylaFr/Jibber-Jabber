@@ -36,6 +36,8 @@ class Server:
         self.hostname = None
         self.server_socket = None
         self.test_client = None
+        self.client_listen_threads = []
+        self.listen_connections_thread = None
 
     # Get the hosts ip address
     def set_ip(self, local:bool=False) -> int:
@@ -72,8 +74,7 @@ class Server:
             client_socket = self.test_client
         if self.send_request(client_socket, "username"):
             return 1
-        print("Waiting for client response")
-        return client_socket.recv(self.buffer_size)
+        return client_socket.recv(self.buffer_size).decode("utf-8")
 
     def send_request(self, client_socket:any, request:str) -> int:
         message = {"type": "REQ","request": request}
@@ -96,7 +97,7 @@ class Server:
         return (client_socket, address)
     # Listens for incoming connection. Once connection is found, requests username from the client
     # Adds all info to client dict. Creates a new thread to handle new client
-    def listen_for_connections(self):
+    def listen_for_connections(self, test:bool=False):
         while True:
             client_socket, address = self.accept_connection()
         
@@ -118,9 +119,12 @@ class Server:
             # Call handler for client connection
             thread = threading.Thread(target=self.listen_for_client_message, args=(client_socket, client_username))
             thread.start()
+            self.client_listen_threads.append(thread)
 
     def listen_for_client_message(self, client:any, username:str, test:bool=False):
         while True:
+            if test:
+                client = self.test_client
             try:
                 incoming_message = client.recv(1024)
                 self.broadcast(incoming_message.decode("utf-8"), client, username)
@@ -151,17 +155,18 @@ class Server:
             print_log("Could not send message", err)
 
     @classmethod
-    def start_server(cls, local:bool = False, port:int = 1234, test:bool = False)->object:
+    def start_server(cls, local:bool = False, port:int = 1234)->object:
         new_server = cls()
-        new_server.set_port()
-        if new_server.set_ip(local) or new_server.create_server_socket():
+        new_server.set_port(port)
+        if new_server.set_ip(local) or new_server.set_port(port) or new_server.create_server_socket():
             print_log("Could not start server!")
             return 1
-        if not test:
-            thread = threading.Thread(target=new_server.listen_for_connections, args=())
-            thread.start()
+        cls.listen_connections_thread = threading.Thread(target=new_server.listen_for_connections, args=())
+        cls.listen_connections_thread.start()
         return new_server
 
-# TODO: Signal handler or variable to stop listening for connections and close server
+# TODO: Signal handler or variable to stop threads
     def close_server(self):
-        pass
+        self.server.close()
+        for client in self.clients.keys():
+            client.close()
