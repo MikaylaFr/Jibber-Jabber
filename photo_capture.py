@@ -1,7 +1,6 @@
 import os
 import cv2
 import face_recognition
-import numpy
 
 # photo capture function
 # takes a photo with your computer's webcam

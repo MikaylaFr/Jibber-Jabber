@@ -5,6 +5,7 @@ from tkinter import *
 from tkinter import ttk
 from functools import partialmethod
 from photo_capture import photo_capture
+from validate_username import validate_username
 
 class App(Tk): 
     def __init__(self, *args, **kwargs):
@@ -82,9 +83,19 @@ class Register(Frame):
         Frame.__init__(self, parent)
         self.controller = controller
         usernameLabel = Label(self, text="create username").grid(row=0, column=0)
+        # StringVar() is an object
         username = StringVar()
         usernameEntry = Entry(self, textvariable=username).grid(row=4, column=0)
+        # access username value
+        #username.set('value')
+        usernameString = username.get()
+        # usernameValidated is T/F
+        usernameValidated = validate_username(usernameString)
         # validate username
+        #if not usernameValidated:
+        if not usernameValidated:
+            print("must reenter username")
+            # Figure out how to bring up a popup to tell the user to enter a new username
         photoLabel = Label(self, text="take webcam photo for facial recognition login in lieu of password").grid(row=8, column=0)
         photoButton = Button(self, text="take photo with webcam", command=lambda: [self.photoCapture(username), controller.show_frame("Chat")]).grid(row=12, column=0)
 
