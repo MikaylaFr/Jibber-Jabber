@@ -14,11 +14,7 @@ class Demo:
         choice = input("What would you like to do?\n1. Start a chatroom\n2. Join to a chatroom\n")
         # Make server then start client
         if choice == '1':
-            choice = input("Local IP?\n1. Yes-Uses local ip\n2. Uses public IP\n")
-            if choice == "1":
-                self.server = Server.start_server(True)
-            else:
-                self.server = Server.start_server()
+            self.server = Server.start_server(True)
             print(f"Server started on IP: {self.server.ip_address} on port {self.server.port}")
             username = input("Enter username:  ")
             self.client = Client.start_client(self.server.ip_address, self.server.port, username)
