@@ -12,16 +12,15 @@ import json
 # Print to logs
 # TODO Change output to file later (may not need this)
 def print_log(message, exception:Exception = None) -> str:
-    #f = open("logs.txt", "a")
+    f = open("logs.txt", "a")
     now = datetime.now()
     log = now.strftime("%H:%M:%S") + ":  "
     log += message
     if exception:
         log += " Exception: " + str(exception)
-    print(log)
-    return log
-    #f.write(log)
-    #f.close()
+    #print(log)
+    f.write(log + '\n')
+    f.close()
 
 # Server Class
 # Object representing the server that will receive and broadcast
@@ -107,7 +106,7 @@ class Server:
             if client_username == 1:
                 print_log("Closing connection")
                 client_socket.close()
-                continue
+                break
 
             #Add to dict of clients
             self.clients[client_socket] = {"addr":address, "username":client_username}
@@ -118,6 +117,7 @@ class Server:
             # Create new thread to listen to client for incoming messages. 
             # Call handler for client connection
             thread = threading.Thread(target=self.listen_for_client_message, args=(client_socket, client_username))
+            thread.daemon = True
             thread.start()
             self.client_listen_threads.append(thread)
 
@@ -129,9 +129,11 @@ class Server:
                 incoming_message = client.recv(1024)
                 self.broadcast(incoming_message.decode("utf-8"), client, username)
             except:
+                self.broadcast(f"{username} has left the chat...")
                 self.clients.pop(client)
                 client.close()
                 break
+            
             if test:
                 break
     # Send message to all clients. Encode default is UTF-8
@@ -161,7 +163,9 @@ class Server:
         if new_server.set_ip(local) or new_server.set_port(port) or new_server.create_server_socket():
             print_log("Could not start server!")
             return 1
+        # Make daemon process?
         cls.listen_connections_thread = threading.Thread(target=new_server.listen_for_connections, args=())
+        cls.listen_connections_thread.daemon = True
         cls.listen_connections_thread.start()
         return new_server
 
@@ -169,4 +173,7 @@ class Server:
     def close_server(self):
         self.server.close()
         for client in self.clients.keys():
+            self.broadcast("Server is shutting down...")
             client.close()
+        self.listen_connections_thread.daemon = True
+

@@ -1,7 +1,5 @@
 import threading
 import socket
-import sys
-import tkinter
 import json
 
 class Client:
@@ -41,6 +39,13 @@ class Client:
         else:
             print("unkown req received")
             
+    def handle_stat(self, msg):
+        if msg["msg"] == "Server is shutting down...":
+            self.print_message(msg["msg"])
+            self.close_client()
+        else:
+            self.print_message(msg["msg"])
+    
     def handle_message(self, msg:str):
         # Convert message to dict
         message = json.loads(msg)
@@ -49,7 +54,7 @@ class Client:
         if type_msg == "REQ":
             self.handle_req(message)
         elif type_msg == "STAT":
-            self.print_message(message["msg"])
+            self.handle_stat(message)
         elif type_msg == "CHAT":
             self.print_message(message["msg"], message["user"])
 
@@ -58,28 +63,33 @@ class Client:
             try:
                 message = self.socket.recv(self.buffer_size).decode("utf-8")
             except Exception as err:
-                print("Oh no! Our table! Its broken!")
+                print("Lost connection to server...")
                 self.socket.close()
                 break
             self.handle_message(message)
 
     def listen_user_input(self):
+        self.print_message("Connected. Begin chatting...")
         while True:
-            chat = input()
+            try:
+                chat = input()
+            except:
+                break
             self.send_message_to_server(chat)
             self.print_message(chat, "self")
 
     @classmethod
-    def start_client(cls, ip:str, user:str):
+    def start_client(cls, ip:str, port:1234, user:str):
         new_client = cls()
         new_client.set_username(user)
-        new_client.connect_to_server(ip, 1234)
+        new_client.connect_to_server(ip, port)
+        # Make daemon process?
         new_client.listen_server_thread = threading.Thread(target=new_client.listen_to_server)
+        new_client.listen_server_thread.daemon = True
         new_client.listen_server_thread.start()
-        new_client.listen_user_thread = threading.Thread(target=new_client.listen_user_input)
-        new_client.listen_user_thread.start()
+        new_client.listen_user_input()
         return new_client
 
     def close_client(self):
-        # TODO close threads
         self.socket.close()
+        self.listen_server_thread.daemon = True
