@@ -1,0 +1,19 @@
+19:30:21:  Socket created, listening on port 1234, with IP 127.0.0.1
+19:30:29:  
+New connection: ('127.0.0.1', 49529)
+19:30:29:  Requesting username
+19:30:29:  Username received: goblin
+19:31:54:  
+New connection: ('127.0.0.1', 49534)
+19:31:54:  Requesting username
+19:31:54:  Username received: elf
+19:37:55:  Socket created, listening on port 1234, with IP 10.0.0.130
+19:38:10:  
+New connection: ('10.0.0.130', 49557)
+19:38:10:  Requesting username
+19:38:10:  Username received: margaret
+19:40:34:  
+New connection: ('10.0.0.130', 49759)
+19:40:34:  Requesting username
+19:40:34:  Username received: margaret2
+19:43:56:  Socket created, listening on port 1234, with IP 10.0.0.130

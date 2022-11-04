@@ -19,17 +19,18 @@ class App(Tk):
         self.title('Jibber-Jabber')
 
         self.frames = {}
+        #instantiating all the frames of the app
         self.frames["StartPage"] = StartPage(parent=container, controller=self)
         self.frames["Login"] = Login(parent=container, controller=self)
         self.frames["Register"] = Register(parent=container, controller = self)
         self.frames["ConfirmRegistration"] = ConfirmRegistration(parent=container, controller=self)
-        self.frames["Chat"] = Chat(parent=container, controller=self)
+        self.frames["ChatEntry"] = ChatEntry(parent=container, controller=self)
 
         self.frames["StartPage"].grid(row=0, column=0, sticky="nsew")
         self.frames["Login"].grid(row=0, column = 0, sticky="nsew")
         self.frames["Register"].grid(row=0, column=0, sticky="nsew")
         self.frames["ConfirmRegistration"].grid(row=0, column=0, sticky="nsew")
-        self.frames["Chat"].grid(row=0, column=0, sticky="nsew")
+        self.frames["ChatEntry"].grid(row=0, column=0, sticky="nsew")
 
         #show the first frame when the app opens
         self.show_frame("StartPage")
@@ -64,7 +65,7 @@ class Login(Frame):
         #validate the login
         # validateLogin = partial(validateLogin, username)
         # login button
-        loginButton2 = Button(self, text="Login", command=lambda: [self.validateLogin(username), controller.show_frame("Chat")]).grid(row=4, column=0)
+        loginButton2 = Button(self, text="Login", command=lambda: [self.validateLogin(username), controller.show_frame("ChatEntry")]).grid(row=4, column=0)
         #loginButton = Button(self, text="login").grid(row=4, column = 0)
         #controller.show_frame("Chat")
  
@@ -97,7 +98,7 @@ class Register(Frame):
             print("must reenter username")
             # Figure out how to bring up a popup to tell the user to enter a new username
         photoLabel = Label(self, text="take webcam photo for facial recognition login in lieu of password").grid(row=8, column=0)
-        photoButton = Button(self, text="take photo with webcam", command=lambda: [self.photoCapture(username), controller.show_frame("Chat")]).grid(row=12, column=0)
+        photoButton = Button(self, text="take photo with webcam", command=lambda: [self.photoCapture(username), controller.show_frame("ChatEntry")]).grid(row=12, column=0)
 
     def photoCapture(self, username):
         enteredName = username.get()
@@ -113,7 +114,8 @@ class ConfirmRegistration(Frame):
         self.controller = controller
         #if photo was good, take user to chat page, if photo was bad, retake photo...
 
-class Chat(Frame):
+#this class asks if you want to log in as
+class ChatEntry(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller = controller
