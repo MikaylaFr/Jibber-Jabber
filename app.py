@@ -4,8 +4,11 @@
 from tkinter import *
 from tkinter import ttk
 from functools import partialmethod
+import firebase_admin
+from firebase_admin import firestore
 from photo_capture import photo_capture
 from validate_username import validate_username
+from loginDB import setUpDatabase
 
 class App(Tk): 
     def __init__(self, *args, **kwargs):
@@ -34,6 +37,17 @@ class App(Tk):
 
         #show the first frame when the app opens
         self.show_frame("StartPage")
+
+        #start db
+        self.startDB()
+        self.db.collection('users').add({'username': 'testuser4'})
+
+        #start DB
+    def startDB(self):
+        setUpDatabase()
+        self.db=firestore.client()
+
+    #db.collection('users').add({'username': 'testuser2'})
 
     def show_frame(self, page_name):
         frame = self.frames[page_name]
@@ -91,6 +105,7 @@ class Register(Frame):
         #username.set('value')
         usernameString = username.get()
         # usernameValidated is T/F
+        #self.db.collection('users').add({'username': 'testuser3'})
         usernameValidated = validate_username(usernameString)
         # validate username
         #if not usernameValidated:
