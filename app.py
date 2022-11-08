@@ -40,7 +40,6 @@ class App(Tk):
 
         #start db
         self.startDB()
-        self.db.collection('users').add({'username': 'testuser4'})
 
         #start DB
     def startDB(self):
@@ -105,15 +104,18 @@ class Register(Frame):
         #username.set('value')
         usernameString = username.get()
         # usernameValidated is T/F
-        parent.db.collection('users').add({'username': 'testuser3'})
+        #self.controller.db.collection('users').add({'username': 'testuser3'})
+        #testButton = Button(self, text="insert into db", command=lambda: [controller.db.collection('users').add({'username': 'testuser3'})]).grid(row=8, column=0)
         usernameValidated = validate_username(usernameString)
         # validate username
         #if not usernameValidated:
         if not usernameValidated:
             print("must reenter username")
             # Figure out how to bring up a popup to tell the user to enter a new username
-        photoLabel = Label(self, text="take webcam photo for facial recognition login in lieu of password").grid(row=8, column=0)
-        photoButton = Button(self, text="take photo with webcam", command=lambda: [self.photoCapture(username), controller.show_frame("ChatEntry")]).grid(row=12, column=0)
+        photoLabel = Label(self, text="take webcam photo for facial recognition login in lieu of password").grid(row=12, column=0)
+        photoButton = Button(self, text="take photo with webcam", command=lambda: [self.photoCapture(username), 
+                            controller.db.collection('users').add({'username': username.get()}),
+                            controller.show_frame("ChatEntry")]).grid(row=16, column=0)
 
     def photoCapture(self, username):
         enteredName = username.get()
