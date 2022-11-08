@@ -105,7 +105,7 @@ class Register(Frame):
         #username.set('value')
         usernameString = username.get()
         # usernameValidated is T/F
-        #self.db.collection('users').add({'username': 'testuser3'})
+        parent.db.collection('users').add({'username': 'testuser3'})
         usernameValidated = validate_username(usernameString)
         # validate username
         #if not usernameValidated:
