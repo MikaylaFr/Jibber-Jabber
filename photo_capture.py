@@ -22,7 +22,7 @@ def photo_capture():
         cv2.imshow("person", image)
 
         # save the image
-        cv2.imwrite("person.png", image)
+        cv2.imwrite("person.jpg", image)
 
         # show image for 5 seconds
         cv2.waitKey(5000)
@@ -61,6 +61,17 @@ def identify_user(knownImage):
     comparison = face_recognition.compare_faces([userEncoding], unknownEncoding)
     print("Result: ", comparison)
 
+def convert_to_byte_array(image):
+    """
+    imageBytes = image.read()
+    print(imageBytes)
+    byteArray = bytearray(imageBytes)
+    return byteArray
+    """
+    with open(image, 'rb') as f:
+        imageBlob = f.read()
+    return imageBlob
 
+#print(convertToByteArray('person.jpg'))
 
 #identify_user('person.png')

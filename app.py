@@ -7,8 +7,10 @@ from functools import partialmethod
 import firebase_admin
 from firebase_admin import firestore
 from photo_capture import photo_capture
+from photo_capture import convert_to_byte_array
 from validate_username import validate_username
 from loginDB import setUpDatabase
+from loginDB import save_photo_to_firebase_storage
 
 class App(Tk): 
     def __init__(self, *args, **kwargs):
@@ -113,17 +115,22 @@ class Register(Frame):
             print("must reenter username")
             # Figure out how to bring up a popup to tell the user to enter a new username
         photoLabel = Label(self, text="take webcam photo for facial recognition login in lieu of password").grid(row=12, column=0)
-        photoButton = Button(self, text="take photo with webcam", command=lambda: [self.photoCapture(username), 
-                            controller.db.collection('users').add({'username': username.get()}),
-                            controller.show_frame("ChatEntry")]).grid(row=16, column=0)
+        photoButton = Button(self, text="take photo with webcam", command=lambda: [self.photoCapture(username)]).grid(row=16, column=0)
+                            #controller.show_frame("ChatEntry")]).grid(row=16, column=0)
+        #popup to confirm photo save
+        byteImage = self.savePhoto()
+        photoSaveButton = Button(self, text="save photo", command=lambda: [controller.db.collection('users').add({'username': username.get(), 
+                            'photo': byteImage}), controller.show_frame("ChatEntry")]).grid(row=20, column=0)
 
     def photoCapture(self, username):
         enteredName = username.get()
         print("username entered: ", enteredName)
         photo_capture()
-        #add photo and username to database 
-        #make sure 
         return
+    
+    def savePhoto(self):
+        byteImage = convert_to_byte_array('person.jpg')
+        return byteImage
 
 class ConfirmRegistration(Frame):
     def __init__(self, parent, controller):
