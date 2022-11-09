@@ -94,6 +94,10 @@ class Login(Frame):
         # how to validate the photo?
         return
     
+    def retrievePhoto():
+        pass
+        # need to get photo from db
+    
 class Register(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
@@ -119,8 +123,10 @@ class Register(Frame):
                             #controller.show_frame("ChatEntry")]).grid(row=16, column=0)
         #popup to confirm photo save
         byteImage = self.savePhoto()
+        # this button saves the username and photo blob in the database
         photoSaveButton = Button(self, text="save photo", command=lambda: [controller.db.collection('users').add({'username': username.get(), 
                             'photo': byteImage}), controller.show_frame("ChatEntry")]).grid(row=20, column=0)
+        testButton = Button(self, text='testing calling from function', command=lambda: [self.addToDb(byteImage)]).grid(row=24, column=0)
 
     def photoCapture(self, username):
         enteredName = username.get()
@@ -131,6 +137,9 @@ class Register(Frame):
     def savePhoto(self):
         byteImage = convert_to_byte_array('person.jpg')
         return byteImage
+    
+    def addToDb(self, byteImage):
+        self.controller.db.collection('users').add({'username': 'sally', 'photo': byteImage})
 
 class ConfirmRegistration(Frame):
     def __init__(self, parent, controller):
