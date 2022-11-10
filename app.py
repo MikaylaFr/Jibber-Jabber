@@ -93,7 +93,14 @@ class Login(Frame):
         if self.controller.db.collection('users').where("username", "==", username.get()).get():
             print("username found")
             # get blob associated with username
-            blobFromDb = self.controller.db.collection('users').where("username", "==", username.get()).get("photo")
+            #fetch the document from the db
+            docFromDb = self.controller.db.collection('users').where("username", "==", username.get()).get()
+            for doc in docFromDb:
+                userDocument = doc.to_dict()
+                print(doc.to_dict())
+            # fetch the blob from the document fields dictionary
+            print(userDocument)
+            #convert_to_image(blobFromDb)
 
         else:
             print("username not found")

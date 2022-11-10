@@ -71,7 +71,8 @@ def convert_to_byte_array(image):
 
 def convert_to_image(blob):
     with open('imageFromDB.jpg', 'wb') as fh:
-        fh.write(base64.decodebytes(blob))
+        image = fh.write(base64.decodebytes(blob))
+    return image
 
 #print(convertToByteArray('person.jpg'))
 
