@@ -7,7 +7,9 @@ from functools import partialmethod
 import firebase_admin
 from firebase_admin import firestore
 from photo_capture import photo_capture
+from photo_capture import identify_user
 from photo_capture import convert_to_byte_array
+from photo_capture import convert_to_image
 from validate_username import validate_username
 from loginDB import setUpDatabase
 from loginDB import save_photo_to_firebase_storage
@@ -87,11 +89,19 @@ class Login(Frame):
     def validateLogin(self, username): #also need to add photo as an argument
         # need to validate username
         print("username entered : ", username.get())
+        #compare entered username to database of usernames
+        if self.controller.db.collection('users').where("username", "==", username.get()).get():
+            print("username found")
+            # get blob associated with username
+            blobFromDb = self.controller.db.collection('users').where("username", "==", username.get()).get("photo")
+
+        else:
+            print("username not found")
         # take photo
         photo_capture()
         # compare name of file to photo that is already saved
         # if there is no saved photo, login is not validated
-        # how to validate the photo?
+        #identify_user(photoFromDatabase)
         return
     
     def retrievePhoto():

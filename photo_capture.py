@@ -1,6 +1,7 @@
 import os
 import cv2
 import face_recognition
+import base64
 
 # photo capture function
 # takes a photo with your computer's webcam
@@ -67,6 +68,10 @@ def convert_to_byte_array(image):
     with open(image, 'rb') as f:
         imageBlob = f.read()
     return imageBlob
+
+def convert_to_image(blob):
+    with open('imageFromDB.jpg', 'wb') as fh:
+        fh.write(base64.decodebytes(blob))
 
 #print(convertToByteArray('person.jpg'))
 
