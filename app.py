@@ -99,8 +99,9 @@ class Login(Frame):
                 userDocument = doc.to_dict()
                 print(doc.to_dict())
             # fetch the blob from the document fields dictionary
-            print(userDocument)
-            #convert_to_image(blobFromDb)
+            blobFromDb = userDocument.get('photo')
+            #print(userDocument)
+            convert_to_image(blobFromDb)
 
         else:
             print("username not found")
