@@ -97,24 +97,19 @@ class Login(Frame):
             docFromDb = self.controller.db.collection('users').where("username", "==", username.get()).get()
             for doc in docFromDb:
                 userDocument = doc.to_dict()
-                print(doc.to_dict())
             # fetch the blob from the document fields dictionary
             blobFromDb = userDocument.get('photo')
             #print(userDocument)
             convert_to_image(blobFromDb)
-
         else:
             print("username not found")
-        # take photo
-        photo_capture()
         # compare name of file to photo that is already saved
         # if there is no saved photo, login is not validated
-        #identify_user(photoFromDatabase)
-        return
+        wasPhotoValidated = identify_user('imageFromDB.jpg')
+        if wasPhotoValidated:
+            print("User photo validated, login can proceed")
+        #return
     
-    def retrievePhoto():
-        pass
-        # need to get photo from db
     
 class Register(Frame):
     def __init__(self, parent, controller):

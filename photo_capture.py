@@ -1,8 +1,6 @@
 import os
 import cv2
 import face_recognition
-import base64
-from PIL import Image
 
 # photo capture function
 # takes a photo with your computer's webcam
@@ -38,6 +36,8 @@ def photo_capture():
     # exits the camera
     cam.release()
 
+# identify_user function compares saved image from user database 
+# to new image
 def identify_user(knownImage):
     knownImage = face_recognition.load_image_file(knownImage)
 
@@ -50,6 +50,7 @@ def identify_user(knownImage):
     cv2.imshow('unknown image', image)
 
     cv2.waitKey(3000)
+    cv2.destroyWindow('unknown image')
 
     if result:
         unknownImage = image
@@ -62,6 +63,10 @@ def identify_user(knownImage):
 
     comparison = face_recognition.compare_faces([userEncoding], unknownEncoding)
     print("Result: ", comparison)
+    if comparison[0] == True:
+        return True
+    else:
+        return False
 
 
 # converts photo to byte array for db storage
@@ -70,8 +75,8 @@ def convert_to_byte_array(image):
         imageBlob = f.read()
     return imageBlob
 
+# converts blob back to image
 def convert_to_image(blob):
-    
     with open('imageFromDB.jpg', 'wb') as fh:
         image = fh.write(blob)
     return image
