@@ -17,3 +17,12 @@ New connection: ('10.0.0.130', 49759)
 19:40:34:  Requesting username
 19:40:34:  Username received: margaret2
 19:43:56:  Socket created, listening on port 1234, with IP 10.0.0.130
+20:39:37:  Socket created, listening on port 1234, with IP 127.0.0.1
+20:39:41:  
+New connection: ('127.0.0.1', 51481)
+20:39:41:  Requesting username
+20:39:41:  Username received: margaret
+20:40:40:  
+New connection: ('127.0.0.1', 51485)
+20:40:40:  Requesting username
+20:40:40:  Username received: hulk

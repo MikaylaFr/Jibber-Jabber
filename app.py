@@ -4,8 +4,15 @@
 from tkinter import *
 from tkinter import ttk
 from functools import partialmethod
+import firebase_admin
+from firebase_admin import firestore
 from photo_capture import photo_capture
+from photo_capture import identify_user
+from photo_capture import convert_to_byte_array
+from photo_capture import convert_to_image
 from validate_username import validate_username
+from loginDB import setUpDatabase
+from loginDB import save_photo_to_firebase_storage
 
 class App(Tk): 
     def __init__(self, *args, **kwargs):
@@ -34,6 +41,16 @@ class App(Tk):
 
         #show the first frame when the app opens
         self.show_frame("StartPage")
+
+        #start db
+        self.startDB()
+
+        #start DB
+    def startDB(self):
+        setUpDatabase()
+        self.db=firestore.client()
+
+    #db.collection('users').add({'username': 'testuser2'})
 
     def show_frame(self, page_name):
         frame = self.frames[page_name]
@@ -72,12 +89,27 @@ class Login(Frame):
     def validateLogin(self, username): #also need to add photo as an argument
         # need to validate username
         print("username entered : ", username.get())
-        # take photo
-        photo_capture()
+        #compare entered username to database of usernames
+        if self.controller.db.collection('users').where("username", "==", username.get()).get():
+            print("username found")
+            # get blob associated with username
+            #fetch the document from the db
+            docFromDb = self.controller.db.collection('users').where("username", "==", username.get()).get()
+            for doc in docFromDb:
+                userDocument = doc.to_dict()
+            # fetch the blob from the document fields dictionary
+            blobFromDb = userDocument.get('photo')
+            #print(userDocument)
+            convert_to_image(blobFromDb)
+        else:
+            print("username not found")
         # compare name of file to photo that is already saved
         # if there is no saved photo, login is not validated
-        # how to validate the photo?
-        return
+        wasPhotoValidated = identify_user('imageFromDB.jpg')
+        if wasPhotoValidated:
+            print("User photo validated, login can proceed")
+        #return
+    
     
 class Register(Frame):
     def __init__(self, parent, controller):
@@ -91,22 +123,36 @@ class Register(Frame):
         #username.set('value')
         usernameString = username.get()
         # usernameValidated is T/F
+        #self.controller.db.collection('users').add({'username': 'testuser3'})
+        #testButton = Button(self, text="insert into db", command=lambda: [controller.db.collection('users').add({'username': 'testuser3'})]).grid(row=8, column=0)
         usernameValidated = validate_username(usernameString)
         # validate username
         #if not usernameValidated:
         if not usernameValidated:
             print("must reenter username")
             # Figure out how to bring up a popup to tell the user to enter a new username
-        photoLabel = Label(self, text="take webcam photo for facial recognition login in lieu of password").grid(row=8, column=0)
-        photoButton = Button(self, text="take photo with webcam", command=lambda: [self.photoCapture(username), controller.show_frame("ChatEntry")]).grid(row=12, column=0)
+        photoLabel = Label(self, text="take webcam photo for facial recognition login in lieu of password").grid(row=12, column=0)
+        photoButton = Button(self, text="take photo with webcam", command=lambda: [self.photoCapture(username)]).grid(row=16, column=0)
+                            #controller.show_frame("ChatEntry")]).grid(row=16, column=0)
+        #popup to confirm photo save
+        byteImage = self.savePhoto()
+        # this button saves the username and photo blob in the database
+        photoSaveButton = Button(self, text="save photo", command=lambda: [controller.db.collection('users').add({'username': username.get(), 
+                            'photo': byteImage}), controller.show_frame("ChatEntry")]).grid(row=20, column=0)
+        testButton = Button(self, text='testing calling from function', command=lambda: [self.addToDb(byteImage)]).grid(row=24, column=0)
 
     def photoCapture(self, username):
         enteredName = username.get()
         print("username entered: ", enteredName)
         photo_capture()
-        #add photo and username to database 
-        #make sure 
         return
+    
+    def savePhoto(self):
+        byteImage = convert_to_byte_array('person.jpg')
+        return byteImage
+    
+    def addToDb(self, byteImage):
+        self.controller.db.collection('users').add({'username': 'sally', 'photo': byteImage})
 
 class ConfirmRegistration(Frame):
     def __init__(self, parent, controller):
