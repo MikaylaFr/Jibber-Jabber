@@ -131,3 +131,6 @@ dmypy.json
 
 # Misc
 logs.txt
+
+# for database
+serviceAccountKey.json
