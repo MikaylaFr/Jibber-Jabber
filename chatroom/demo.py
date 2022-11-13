@@ -17,13 +17,13 @@ class Demo:
             self.server = Server.start_server(True)
             print(f"Server started on IP: {self.server.ip_address} on port {self.server.port}")
             username = input("Enter username:  ")
-            self.client = Client.start_client(self.server.ip_address, self.server.port, username)
+            self.client = Client.start_client(ip=self.server.ip_address, port=self.server.port, user=username)
         #Start client
         else:
             connect_ip = input("Server IP: ")
             connect_port = int(input("Server Port: "))
             username = input("Enter your username: ")
-            self.client = Client.start_client(connect_ip, connect_port, username)
+            self.client = Client.start_client(ip=connect_ip, port=connect_port, user=username)
 
     def signal_handler(self, signum, frame):
         if self.server:

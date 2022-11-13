@@ -1,7 +1,5 @@
 import threading
 import socket
-import sys
-import select
 from datetime import datetime
 import json
 
@@ -110,6 +108,8 @@ class Server:
 
             #Add to dict of clients
             self.clients[client_socket] = {"addr":address, "username":client_username}
+            if len(self.clients) == 1:
+                self.broadcast(f"Chatroom created with IP {self.ip_address} on port {self.port}")
 
             print_log(f"Username received: {client_username}")
             self.broadcast(f"{client_username} has connected...")
@@ -136,6 +136,7 @@ class Server:
             
             if test:
                 break
+
     # Send message to all clients. Encode default is UTF-8
     def broadcast(self, message:str, client:any=None, username:str=""):
         # Construct JSON to send
@@ -169,11 +170,9 @@ class Server:
         cls.listen_connections_thread.start()
         return new_server
 
-# TODO: Signal handler or variable to stop threads
     def close_server(self):
         self.server.close()
         for client in self.clients.keys():
             self.broadcast("Server is shutting down...")
             client.close()
-        self.listen_connections_thread.daemon = True
 
