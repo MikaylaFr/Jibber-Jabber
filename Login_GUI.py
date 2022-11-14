@@ -55,7 +55,7 @@ class Login(Frame):
         #validate the login
         # validateLogin = partial(validateLogin, username)
         # login button
-        loginButton2 = Button(self, text="Login", command=lambda: [self.validateLogin(username), controller.show_frame("ChatEntry")]).grid(row=4, column=0)
+        loginButton2 = Button(self, text="Login", command=lambda: [self.validateLogin(username)]).grid(row=4, column=0)
         #loginButton = Button(self, text="login").grid(row=4, column = 0)
         #controller.show_frame("Chat")
  
@@ -82,7 +82,7 @@ class Login(Frame):
         if wasPhotoValidated:
             print("User photo validated, login can proceed")
             self.controller.username = username.get()
-            
+            self.controller.show_frame("ChatMenu")
         #return
     
     

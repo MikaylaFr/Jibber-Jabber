@@ -41,7 +41,7 @@ class ChatMenu(Frame):
                 controller.show_frame("ConnectToServer")
             else:
                 print(controller.server.ip_address)
-                controller.client = Client.start_client(ip=controller.server.ip_address,user=controller.username)
+                controller.client = Client.start_client(ip=controller.server.ip_address,user=controller.username, controller=controller)
                 controller.show_frame("ChatRoom")
         local_ip_button = Button(menu_frame, text="Use Local IP", command=lambda: create_server_local())
         local_ip_button.pack()
