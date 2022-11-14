@@ -3,8 +3,7 @@
 
 from tkinter import *
 from tkinter import ttk
-from tkinter import messagebox
-# from functools import partialmethod
+from functools import partialmethod
 import firebase_admin
 from firebase_admin import firestore
 from photo_capture import photo_capture
@@ -15,49 +14,21 @@ from validate_username import validate_username
 from loginDB import setUpDatabase
 from loginDB import save_photo_to_firebase_storage
 
-class App(Tk): 
-    def __init__(self, *args, **kwargs):
-        Tk.__init__(self, *args, **kwargs)
-
-        # frames go in the container
-        container = Frame(self)
-        container.pack(side="top", fill = "both", expand=True)
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight = 1)
-        self.title('Jibber-Jabber')
-
-        self.frames = {}
-        #instantiating all the frames of the app
-        self.frames["StartPage"] = StartPage(parent=container, controller=self)
-        self.frames["Login"] = Login(parent=container, controller=self)
-        self.frames["LoginValidated"] = LoginValidated(parent=container, controller=self)
-        self.frames["Register"] = Register(parent=container, controller = self)
-        self.frames["ConfirmRegistration"] = ConfirmRegistration(parent=container, controller=self)
-        self.frames["ChatEntry"] = ChatEntry(parent=container, controller=self)
-
-        self.frames["StartPage"].grid(row=0, column=0, sticky="nsew")
-        self.frames["Login"].grid(row=0, column = 0, sticky="nsew")
-        self.frames["LoginValidated"].grid(row=0, column=0, sticky="nsew")
-        self.frames["Register"].grid(row=0, column=0, sticky="nsew")
-        self.frames["ConfirmRegistration"].grid(row=0, column=0, sticky="nsew")
-        self.frames["ChatEntry"].grid(row=0, column=0, sticky="nsew")
-
-        #show the first frame when the app opens
-        self.show_frame("StartPage")
-
-        #start db
-        self.startDB()
-
-        #start DB
-    def startDB(self):
-        setUpDatabase()
-        self.db=firestore.client()
-
-    #db.collection('users').add({'username': 'testuser2'})
-
-    def show_frame(self, page_name):
-        frame = self.frames[page_name]
-        frame.tkraise()
+def LoginGuiInit(container, main_gui): 
+    #instantiating all the frames of the app
+    main_gui.frames["StartPage"] = StartPage(parent=container, controller=main_gui)
+    main_gui.frames["Login"] = Login(parent=container, controller=main_gui)
+    main_gui.frames["Register"] = Register(parent=container, controller = main_gui)
+    main_gui.frames["ConfirmRegistration"] = ConfirmRegistration(parent=container, controller=main_gui)
+    main_gui.frames["ChatEntry"] = ChatEntry(parent=container, controller=main_gui)
+    main_gui.frames["StartPage"].grid(row=0, column=0, sticky="nsew")
+    main_gui.frames["Login"].grid(row=0, column = 0, sticky="nsew")
+    main_gui.frames["Register"].grid(row=0, column=0, sticky="nsew")
+    main_gui.frames["ConfirmRegistration"].grid(row=0, column=0, sticky="nsew")
+    main_gui.frames["ChatEntry"].grid(row=0, column=0, sticky="nsew")
+    #start db
+    setUpDatabase()
+    main_gui.db=firestore.client()
 
 class StartPage(Frame):
     def __init__(self, parent, controller):
@@ -74,28 +45,21 @@ class StartPage(Frame):
         loginButton.pack()
         registerButton.pack()
 
-
 class Login(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller=controller
-        self.userValidated = False
-        usernameLabel = Label(self, text="username")
-        usernameLabel.grid(row=0, column=0)
+        usernameLabel = Label(self, text="username").grid(row=0, column=0)
         username=StringVar()
-        usernameEntry = Entry(self, textvariable=username)
-        usernameEntry.grid(row=0, column=1)
-        # this button validates the login 
-        # and clears the textbox in case multiple tries are needed. 
-        loginButton2 = Button(self, text="Login", command=lambda: [self.validateLogin(username), self.clearText(usernameEntry)]).grid(row=4, column=0)
-        
-    
-    def clearText(self, textEntry):
-        textEntry.delete(0, END)
-
-    #validateLogin checks that the username is in the db, takes a webcam photo, and 
-    # compares it to the image stored in the db associated with the username
-    def validateLogin(self, username): 
+        usernameEntry = Entry(self, textvariable=username).grid(row=0, column=1)
+        #validate the login
+        # validateLogin = partial(validateLogin, username)
+        # login button
+        loginButton2 = Button(self, text="Login", command=lambda: [self.validateLogin(username)]).grid(row=4, column=0)
+        #loginButton = Button(self, text="login").grid(row=4, column = 0)
+        #controller.show_frame("Chat")
+ 
+    def validateLogin(self, username): #also need to add photo as an argument
         # need to validate username
         print("username entered : ", username.get())
         #compare entered username to database of usernames
@@ -112,32 +76,15 @@ class Login(Frame):
             convert_to_image(blobFromDb)
         else:
             print("username not found")
-            messagebox.showinfo("showinfo", "username not found, enter again")
-            #.delete(0, END)
-            return False
         # compare name of file to photo that is already saved
         # if there is no saved photo, login is not validated
         wasPhotoValidated = identify_user('imageFromDB.jpg')
         if wasPhotoValidated:
             print("User photo validated, login can proceed")
-            self.userValidated==True
-            # go to login validated page
-            self.controller.show_frame("LoginValidated")
-            return True
-        else:
-            print("webcam photo does not match")
-            #popup notifying user of failure.
-            messagebox.showinfo("showinfo", "facial recognition login failed")
-            #got back to start page
-            self.controller.show_frame("StartPage")
-            return False
+            self.controller.username = username.get()
+            self.controller.show_frame("ChatMenu")
+        #return
     
-class LoginValidated(Frame):
-    def __init__(self, parent, controller):
-        Frame.__init__(self, parent)
-        self.controller = controller
-        validatedLabel = Label(self, text="account has been validated")
-        chatEntryButton = Button(self, text="enter chat", command=lambda: [controller.show_frame("ChatEntry")]).grid(row=4, column=0)
     
 class Register(Frame):
     def __init__(self, parent, controller):
@@ -195,7 +142,3 @@ class ChatEntry(Frame):
         self.controller = controller
         chatLabel = Label(self, text="Jibber Jabber here").grid(row=0, column=2)
 
-
-if __name__ == "__main__":
-    app = App()
-    app.mainloop()

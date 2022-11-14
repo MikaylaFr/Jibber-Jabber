@@ -90,6 +90,7 @@ ipython_config.py
 #   having no cross-platform support, pipenv may install dependencies that don't work, or not
 #   install all needed dependencies.
 #Pipfile.lock
+jibber-jabber-env/
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow
 __pypackages__/
@@ -127,6 +128,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Misc
+logs.txt
 
 # for database
 serviceAccountKey.json
