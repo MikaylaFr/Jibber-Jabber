@@ -4,6 +4,7 @@
 def validate_username(username):
     # lowercaseUN = username.lower()
     lowercaseUN = username
+    print("username: ", username)
     if lowercaseUN == '':
         print('not a valid username')
         return False

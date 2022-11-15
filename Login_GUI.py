@@ -3,7 +3,7 @@
 
 from tkinter import *
 from tkinter import ttk
-from functools import partialmethod
+from tkinter import messagebox
 import firebase_admin
 from firebase_admin import firestore
 from photo_capture import photo_capture
@@ -53,13 +53,13 @@ class Login(Frame):
         username=StringVar()
         usernameEntry = Entry(self, textvariable=username).grid(row=0, column=1)
         #validate the login
-        # validateLogin = partial(validateLogin, username)
-        # login button
-        loginButton2 = Button(self, text="Login", command=lambda: [self.validateLogin(username)]).grid(row=4, column=0)
-        #loginButton = Button(self, text="login").grid(row=4, column = 0)
-        #controller.show_frame("Chat")
+        # login button calls validate login function
+        loginButton2 = Button(self, text="Login", command=lambda: [self.validateLogin(username), self.clearText(usernameEntry)]).grid(row=4, column=0)
+
+    def clearText(self, textEntry):
+        textEntry.delete(0, END)
  
-    def validateLogin(self, username): #also need to add photo as an argument
+    def validateLogin(self, username):
         # need to validate username
         print("username entered : ", username.get())
         #compare entered username to database of usernames
@@ -83,7 +83,13 @@ class Login(Frame):
             print("User photo validated, login can proceed")
             self.controller.username = username.get()
             self.controller.show_frame("ChatMenu")
-        #return
+            return True
+        else: 
+            print("webcam photo does not match")
+            messagebox.showinfo("showinfo", "facial recognition login failed")
+            #got back to start page
+            self.controller.show_frame("StartPage")
+            return False
     
     
 class Register(Frame):
@@ -92,6 +98,7 @@ class Register(Frame):
         self.controller = controller
         usernameLabel = Label(self, text="create username").grid(row=0, column=0)
         # StringVar() is an object
+        usernameValidated = 'placeholder'
         username = StringVar()
         usernameEntry = Entry(self, textvariable=username).grid(row=4, column=0)
         # access username value
@@ -100,14 +107,15 @@ class Register(Frame):
         # usernameValidated is T/F
         #self.controller.db.collection('users').add({'username': 'testuser3'})
         #testButton = Button(self, text="insert into db", command=lambda: [controller.db.collection('users').add({'username': 'testuser3'})]).grid(row=8, column=0)
-        usernameValidated = validate_username(usernameString)
+        #usernameValidated = validate_username(usernameString)
         # validate username
         #if not usernameValidated:
-        if not usernameValidated:
-            print("must reenter username")
+        #if not usernameValidated:
+            #print("must reenter username")
+            #self.controller.show_frame
             # Figure out how to bring up a popup to tell the user to enter a new username
         photoLabel = Label(self, text="take webcam photo for facial recognition login in lieu of password").grid(row=12, column=0)
-        photoButton = Button(self, text="take photo with webcam", command=lambda: [self.photoCapture(username)]).grid(row=16, column=0)
+        photoButton = Button(self, text="take photo with webcam", command=lambda: [usernameValidated(usernameString), self.clearText(usernameEntry)]).grid(row=16, column=0)
                             #controller.show_frame("ChatEntry")]).grid(row=16, column=0)
         #popup to confirm photo save
         byteImage = self.savePhoto()
@@ -115,6 +123,9 @@ class Register(Frame):
         photoSaveButton = Button(self, text="save photo", command=lambda: [controller.db.collection('users').add({'username': username.get(), 
                             'photo': byteImage}), controller.show_frame("ChatEntry")]).grid(row=20, column=0)
         testButton = Button(self, text='testing calling from function', command=lambda: [self.addToDb(byteImage)]).grid(row=24, column=0)
+    
+    def clearText(self, textEntry):
+        textEntry.delete(0, END)
 
     def photoCapture(self, username):
         enteredName = username.get()
