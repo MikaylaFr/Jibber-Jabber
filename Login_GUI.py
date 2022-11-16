@@ -93,6 +93,7 @@ class Login(Frame):
     
     
 class Register(Frame):
+    
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller = controller
@@ -100,20 +101,13 @@ class Register(Frame):
         # StringVar() is an object
         usernameValidated = 'placeholder'
         username = StringVar()
-        usernameEntry = Entry(self, textvariable=username).grid(row=4, column=0)
+        usernameEntry = Entry(self, textvariable=username)
+        usernameEntry.grid(row=4, column=0)
         # access username value
         #username.set('value')
         usernameString = username.get()
-        # usernameValidated is T/F
-        #self.controller.db.collection('users').add({'username': 'testuser3'})
-        #testButton = Button(self, text="insert into db", command=lambda: [controller.db.collection('users').add({'username': 'testuser3'})]).grid(row=8, column=0)
-        #usernameValidated = validate_username(usernameString)
-        # validate username
-        #if not usernameValidated:
-        #if not usernameValidated:
-            #print("must reenter username")
-            #self.controller.show_frame
-            # Figure out how to bring up a popup to tell the user to enter a new username
+        reg = self.register(self.inputValidation)
+        usernameEntry.config(validate='key', validatecommand=(reg, '% P'))
         photoLabel = Label(self, text="take webcam photo for facial recognition login in lieu of password").grid(row=12, column=0)
         photoButton = Button(self, text="take photo with webcam", command=lambda: [usernameValidated(usernameString), self.clearText(usernameEntry)]).grid(row=16, column=0)
                             #controller.show_frame("ChatEntry")]).grid(row=16, column=0)
@@ -127,6 +121,26 @@ class Register(Frame):
     def clearText(self, textEntry):
         textEntry.delete(0, END)
 
+    
+    def inputValidation(self, input):
+        if input == 'null':
+            print('not a valid username1')
+            return False
+        elif input == 'NULL':
+            print("not a valid un2")
+            return False
+        else:
+            return True
+
+    def saveUserInDb(self, username):
+        #captures photo and saves it as person.jpg
+        photo_capture()
+        #saves person.jpg as blob
+        photo = self.savePhoto()
+        # save username and photo blob to db
+        self.controller.db.collection('users').add({'username': username.get(), 'photo': photo})
+
+    """
     def photoCapture(self, username):
         enteredName = username.get()
         print("username entered: ", enteredName)
@@ -139,6 +153,7 @@ class Register(Frame):
     
     def addToDb(self, byteImage):
         self.controller.db.collection('users').add({'username': 'sally', 'photo': byteImage})
+    """
 
 class ConfirmRegistration(Frame):
     def __init__(self, parent, controller):
