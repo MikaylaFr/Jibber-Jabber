@@ -1,3 +1,4 @@
+"""
 # heavily sourced from: https://pythonexamples.org/python-tkinter-login-form/
 # and https://stackoverflow.com/questions/7546050/switch-between-two-frames-in-tkinter/7557028#7557028
 
@@ -199,3 +200,4 @@ class ChatEntry(Frame):
 if __name__ == "__main__":
     app = App()
     app.mainloop()
+"""

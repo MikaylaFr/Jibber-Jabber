@@ -10,7 +10,6 @@ from photo_capture import photo_capture
 from photo_capture import identify_user
 from photo_capture import convert_to_byte_array
 from photo_capture import convert_to_image
-from validate_username import validate_username
 from loginDB import setUpDatabase
 from loginDB import save_photo_to_firebase_storage
 
@@ -49,12 +48,15 @@ class Login(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller=controller
-        usernameLabel = Label(self, text="username").grid(row=0, column=0)
+        usernameLabel = Label(self, text="username")
+        usernameLabel.grid(row=0, column=0)
         username=StringVar()
-        usernameEntry = Entry(self, textvariable=username).grid(row=0, column=1)
+        usernameEntry = Entry(self, textvariable=username)
+        usernameEntry.grid(row=0, column=1)
         #validate the login
         # login button calls validate login function
-        loginButton2 = Button(self, text="Login", command=lambda: [self.validateLogin(username), self.clearText(usernameEntry)]).grid(row=4, column=0)
+        loginButton2 = Button(self, text="Login", command=lambda: [self.validateLogin(username), self.clearText(usernameEntry)])
+        loginButton2.grid(row=4, column=0)
 
     def clearText(self, textEntry):
         textEntry.delete(0, END)
@@ -76,6 +78,8 @@ class Login(Frame):
             convert_to_image(blobFromDb)
         else:
             print("username not found")
+            messagebox.showinfo("showinfo", "username not found, going back to start page")
+            self.controller.show_frame("Start_Page")
         # compare name of file to photo that is already saved
         # if there is no saved photo, login is not validated
         wasPhotoValidated = identify_user('imageFromDB.jpg')
@@ -133,11 +137,17 @@ class Register(Frame):
 
     def saveUserInDb(self, username):
         #captures photo and saves it as person.jpg
-        photo_capture()
-        #saves person.jpg as blob
-        photo = self.savePhoto()
-        # save username and photo blob to db
-        self.controller.db.collection('users').add({'username': username.get(), 'photo': photo})
+        userImageCaptured = photo_capture()
+        if userImageCaptured: 
+            #saves person.jpg as blob
+            photo = self.savePhoto()
+            # save username and photo blob to db
+            self.controller.db.collection('users').add({'username': username.get(), 'photo': photo})
+        else:
+            messagebox.showinfo("showinfo", "no face detected. facial recognition registration failed.")
+            #got back to start page
+            self.controller.show_frame("StartPage")
+            return False
 
     
     def goToChatPage(self):
