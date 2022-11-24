@@ -21,8 +21,6 @@ class Gui(Tk):
         #self.frames["ChatRoom"]
         if not admin_login:
             LoginGuiInit(container=container, main_gui=self)
-            # self.frames.update(login_frames)
-            # self.db = database
             self.show_frame("StartPage")
             pass
         else:
