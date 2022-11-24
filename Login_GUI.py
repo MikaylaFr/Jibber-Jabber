@@ -18,23 +18,21 @@ def LoginGuiInit(container, main_gui):
     main_gui.frames["StartPage"] = StartPage(parent=container, controller=main_gui)
     main_gui.frames["Login"] = Login(parent=container, controller=main_gui)
     main_gui.frames["Register"] = Register(parent=container, controller = main_gui)
-    # main_gui.frames["ConfirmRegistration"] = ConfirmRegistration(parent=container, controller=main_gui)
-    # main_gui.frames["ChatEntry"] = ChatEntry(parent=container, controller=main_gui)
     main_gui.frames["StartPage"].grid(row=0, column=0, sticky="nsew")
     main_gui.frames["Login"].grid(row=0, column = 0, sticky="nsew")
     main_gui.frames["Register"].grid(row=0, column=0, sticky="nsew")
-    # main_gui.frames["ConfirmRegistration"].grid(row=0, column=0, sticky="nsew")
-    # main_gui.frames["ChatEntry"].grid(row=0, column=0, sticky="nsew")
-    #start db
     setUpDatabase()
     main_gui.db=firestore.client()
+
 
 class StartPage(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller = controller
+        self.configure(background='pink2')
         label = Label(self, text="Jibber Jabber App")
         label.pack(side="top", fill="x", pady=10)
+        label.configure(background='pink2')
         #login button
         loginButton = Button(self, text="Login", command=lambda: controller.show_frame("Login"))
 
@@ -48,15 +46,17 @@ class Login(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller=controller
-        usernameLabel = Label(self, text="username")
-        usernameLabel.grid(row=0, column=0)
+        self.configure(background='pink2')
+        usernameLabel = Label(self, text="enter username: ")
+        usernameLabel.pack()
+        usernameLabel.configure(background="pink2")
         username=StringVar()
         usernameEntry = Entry(self, textvariable=username)
-        usernameEntry.grid(row=0, column=1)
+        usernameEntry.pack()
         #validate the login
         # login button calls validate login function
         loginButton2 = Button(self, text="Login", command=lambda: [self.validateLogin(username), self.clearText(usernameEntry)])
-        loginButton2.grid(row=4, column=0)
+        loginButton2.pack()
 
     def clearText(self, textEntry):
         textEntry.delete(0, END)
@@ -101,15 +101,18 @@ class Register(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller = controller
+        self.configure(background='pink2')
         photoLabelText1 = "Jibber-jabber users sign in with facial recognition instead of a password. " 
         photoLabelText2 = "**By clicking register, you are consenting to Jibber-Jabber's use of your webcam"
         photoLabelText3= "and encrypted storage of your login photo."
-        usernameLabel = Label(self, text="create username: ").grid(row=16, column=0, columnspan=2, sticky='SE')
-        # StringVar() is an object
-        #usernameValidated = 'placeholder'
+        usernameLabel = Label(self, text="create username: ")
+        #usernameLabel.grid(row=16, column=0, columnspan=2, sticky='SE')
+        usernameLabel.pack()
+        usernameLabel.config(background='pink2')
         username = StringVar()
         usernameEntry = Entry(self, textvariable=username)
-        usernameEntry.grid(row=16, column=2, sticky="SW")
+        #usernameEntry.grid(row=16, column=2, sticky="SW")
+        usernameEntry.pack()
         # access username value
         #username.set('value')
         usernameString = username.get()
@@ -117,11 +120,19 @@ class Register(Frame):
         reg = self.register(self.inputValidation)
         # must configure input validation to work instantaneously on the username entry box
         usernameEntry.config(validate='key', validatecommand=(reg, '% P'))
-        photoLabel1 = Label(self, text=photoLabelText1).grid(row=8, column=0, columnspan=3, sticky="NSEW")
-        photoLabel2 = Label(self, text=photoLabelText2).grid(row = 28, column = 0, columnspan=3, sticky = "NSEW")
-        photoLabel3 = Label(self, text=photoLabelText3).grid(row = 32, column = 0, columnspan=3, sticky='NSEW')
-        photoButton = Button(self, text="register", command=lambda: [self.saveUserInDb(username), self.goToChatPage()]).grid(row=24, column=1, columnspan=2, padx=50)
-    
+        photoButton = Button(self, text="register", command=lambda: [self.saveUserInDb(username), self.goToChatPage()])
+        photoButton.pack()
+        photoButton.bind('<Return>', lambda event: self.saveUserInDb(username))
+        photoLabel1 = Label(self, text=photoLabelText1)
+        photoLabel2 = Label(self, text=photoLabelText2)
+        photoLabel3 = Label(self, text=photoLabelText3)
+        photoLabel1.pack()
+        photoLabel1.config(background='pink2')
+        photoLabel2.pack()
+        photoLabel2.config(background='pink2')
+        photoLabel3.pack()
+        photoLabel3.config(background='pink2')
+        
     def clearText(self, textEntry):
         textEntry.delete(0, END)
  
