@@ -1,6 +1,4 @@
 import unittest
-import firebase_admin
-from firebase_admin import firestore
 import photo_capture
 from photo_capture import identify_user
 

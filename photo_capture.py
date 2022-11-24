@@ -63,6 +63,7 @@ def identify_user(knownImage):
         unknownImage = image
     else:
         print('no image detected')
+        return False
     
     # photo must be encoded to be compared   
     try:
