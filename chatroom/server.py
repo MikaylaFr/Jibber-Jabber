@@ -2,6 +2,7 @@ import threading
 import socket
 from datetime import datetime
 import json
+from cryptography.fernet import Fernet
 
 
 # Resources:
@@ -12,11 +13,12 @@ import json
 def print_log(message, exception:Exception = None) -> str:
     f = open("logs.txt", "a")
     now = datetime.now()
-    log = now.strftime("%H:%M:%S") + ":  "
+    log = "Server: "
+    log += now.strftime("%H:%M:%S") + ":  "
     log += message
     if exception:
         log += " Exception: " + str(exception)
-    #print(log)
+    print(log)
     f.write(log + '\n')
     f.close()
 
@@ -37,16 +39,8 @@ class Server:
         self.listen_connections_thread = None
 
     # Get the hosts ip address
-    def set_ip(self, local:bool=False) -> int:
-        try:
-            if local:
-                self.ip_address = "127.0.0.1"
-            else:
-                self.hostname = socket.gethostname()
-                self.ip_address = socket.gethostbyname(self.hostname)
-        except Exception as err:
-            print_log("Error: Could not get host ip", err)
-            return 1
+    def set_ip(self, ip:str = None):
+        self.ip_address = ip
    
     # Set port
     def set_port(self, port:int):
@@ -81,11 +75,18 @@ class Server:
             print_log("Failed to send request", err)
             return 1
         
+    def send_key(self, client_socket:any):
+        message = {"type": "KEY","key":self.key.decode("utf-8")}
+        try:
+            client_socket.send(bytes(json.dumps(message), encoding="utf-8"))
+        except Exception as err:
+            print_log("Failed to send key", err)
+            return 1
 
     def accept_connection(self, test:bool=False) -> tuple:
         try:
             client_socket, address = self.server_socket.accept()
-            print_log(f"\nNew connection: {str(address)}")
+            print_log(f"New connection: {str(address)}")
         except Exception as err:
             print_log("\nFailed to accept connection", err)
         # Because testing this indiv function, need to clean up within the thread
@@ -105,7 +106,8 @@ class Server:
                 print_log("Closing connection")
                 client_socket.close()
                 break
-
+            
+            self.send_key(client_socket=client_socket)
             #Add to dict of clients
             self.clients[client_socket] = {"addr":address, "username":client_username}
             if len(self.clients) == 1:
@@ -126,7 +128,7 @@ class Server:
             if test:
                 client = self.test_client
             try:
-                incoming_message = client.recv(1024)
+                incoming_message = client.recv(4096)
                 self.broadcast(incoming_message.decode("utf-8"), client, username)
             except:
                 self.broadcast(f"{username} has left the chat...")
@@ -157,17 +159,20 @@ class Server:
         except Exception as err:
             print_log("Could not send message", err)
 
+    def create_key(self):
+        self.key = Fernet.generate_key()
+
     @classmethod
-    def start_server(cls, local:bool = False, port:int = 1234)->object:
+    def start_server(cls, port:int, ip:str)->object:
         new_server = cls()
         new_server.set_port(port)
-        if new_server.set_ip(local) or new_server.set_port(port) or new_server.create_server_socket():
+        if new_server.set_ip(ip) or new_server.set_port(port) or new_server.create_server_socket():
             print_log("Could not start server!")
             return 1
-        # Make daemon process?
-        cls.listen_connections_thread = threading.Thread(target=new_server.listen_for_connections, args=())
-        cls.listen_connections_thread.daemon = True
-        cls.listen_connections_thread.start()
+        new_server.create_key()
+        new_server.listen_connections_thread = threading.Thread(target=new_server.listen_for_connections, args=())
+        new_server.listen_connections_thread.daemon = True
+        new_server.listen_connections_thread.start()
         return new_server
 
     def close_server(self):

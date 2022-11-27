@@ -4,6 +4,7 @@ import json
 from tkinter import *
 import tkinter.scrolledtext
 from server import Server
+from cryptography.fernet import Fernet
 
 def ChatGuiInit(container, main_gui):
     # Instantiate chat frames
@@ -22,9 +23,7 @@ class ChatMenu(Frame):
         menu_frame = cls()
         Frame.__init__(menu_frame, parent)
         menu_frame.controller = controller
-        #login button
         create_server_button = Button(menu_frame, text="Start Server", command=lambda: controller.show_frame("StartServer"))
-        #register button
         connect_to_server = Button(menu_frame, text="Connect to a Server", command=lambda: controller.show_frame("ConnectToServer"))
         create_server_button.pack()
         connect_to_server.pack()
@@ -35,22 +34,31 @@ class ChatMenu(Frame):
         menu_frame = cls()
         Frame.__init__(menu_frame, parent)
         menu_frame.controller = controller
-        def create_server_local():
-            controller.server = Server.start_server(local=True)
+
+        user_ip_label = Label(menu_frame, text="Server's IP")
+        user_ip_label.pack()
+        user_ip = Entry(menu_frame)
+        user_ip.insert(0, "127.0.0.1")
+        user_ip.pack()
+        user_port_label= Label(menu_frame, text="Server's Port")
+        user_port_label.pack()
+        user_port = Entry(menu_frame)
+        user_port.insert(0, "1234")
+        user_port.pack()
+        if not controller.username:
+            username_label = Label(menu_frame, text="Username - Required")
+            username_label.pack()
+            username = Entry(menu_frame)
+            username.pack()
+        create_server_button = Button(menu_frame, text="Start Server", command=lambda: create_server())
+        create_server_button.pack()
+        def create_server():
+            controller.server = Server.start_server(port=int(user_port.get()), ip=user_ip.get())
             if not controller.username:
-                controller.show_frame("ConnectToServer")
+                controller.client = Client.start_client(controller=controller, ip=controller.server.ip_address, port=controller.server.port, user=username.get())
             else:
-                print(controller.server.ip_address)
-                controller.client = Client.start_client(ip=controller.server.ip_address,user=controller.username, controller=controller)
-                controller.show_frame("ChatRoom")
-        local_ip_button = Button(menu_frame, text="Use Local IP", command=lambda: create_server_local())
-        local_ip_button.pack()
-        public_ip_button = Button(menu_frame, text="Use Public IP", command=lambda: create_server_public())
-        public_ip_button.pack()
-        #TODO Implement getting public ip
-        def create_server_public():
-           pass
-           #controller.server = Server.start_server()  
+                controller.client = Client.start_client(controller=controller, ip=controller.server.ip_address, port=controller.server.port, user=controller.username)
+            controller.show_frame("ChatRoom")
         return menu_frame
 
     @classmethod
@@ -125,6 +133,8 @@ class Client:
             if user == "self":
                 full_msg = "You: " + msg + '\n'
             elif user:
+                # Decrypt message
+                msg = self.fernet_key.decrypt(msg).decode()
                 full_msg = user + ":  " + msg + '\n'
             else:
                 full_msg = msg + '\n'
@@ -141,7 +151,10 @@ class Client:
 
     def send_message_to_server(self, msg:str):
         try:
-            self.socket.send(msg.encode("utf-8"))
+            if type(msg) != bytes:
+                self.socket.send(msg.encode("utf-8"))
+            else:
+                self.socket.send(msg)
         except Exception as err:
             print(f"Could not send message to server Exception: {err}") 
 
@@ -158,6 +171,10 @@ class Client:
         else:
             self.print_message(msg["msg"])
     
+    def handle_key(self, msg):
+        self.encrypt_key = bytes(msg["key"], "utf-8")
+        self.fernet_key = Fernet(self.encrypt_key)
+    
     def handle_message(self, msg:str):
         # Convert message to dict
         message = json.loads(msg)
@@ -169,6 +186,8 @@ class Client:
             self.handle_stat(message)
         elif type_msg == "CHAT":
             self.print_message(message["msg"], message["user"])
+        elif type_msg == "KEY":
+            self.handle_key(message)
 
     def listen_to_server(self):
         while True:
@@ -186,7 +205,8 @@ class Client:
             chat_frame = self.controller.frames["ChatRoom"]
             chat = chat_frame.input_area.get()
             chat_frame.input_area.delete(0, END)
-            self.send_message_to_server(chat)
+            encrypted_chat = self.fernet_key.encrypt(bytes(chat, "utf-8"))
+            self.send_message_to_server(encrypted_chat)
             self.print_message(msg=chat, user="self")
 
     @classmethod

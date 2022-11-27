@@ -1,4 +1,4 @@
-from Login_GUI import LoginGuiInit
+#from Login_GUI import LoginGuiInit
 from tkinter import *
 import sys
 sys.path.append('chatroom')
@@ -20,10 +20,10 @@ class Gui(Tk):
         
         #self.frames["ChatRoom"]
         if not admin_login:
-            LoginGuiInit(container=container, main_gui=self)
+            #LoginGuiInit(container=container, main_gui=self)
             # self.frames.update(login_frames)
             # self.db = database
-            self.show_frame("StartPage")
+            #self.show_frame("StartPage")
             pass
         else:
             self.show_frame("ChatMenu")
