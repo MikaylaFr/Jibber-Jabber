@@ -74,7 +74,6 @@ class Login(Frame):
                 userDocument = doc.to_dict()
             # fetch the blob from the document fields dictionary
             blobFromDb = userDocument.get('photo')
-            #print(userDocument)
             convert_to_image(blobFromDb)
         else:
             print("username not found")
@@ -120,7 +119,7 @@ class Register(Frame):
         reg = self.register(self.inputValidation)
         # must configure input validation to work instantaneously on the username entry box
         usernameEntry.config(validate='key', validatecommand=(reg, '% P'))
-        photoButton = Button(self, text="register", command=lambda: [self.saveUserInDb(username), self.goToChatPage()])
+        photoButton = Button(self, text="register", command=lambda: [self.saveUserInDb(username), self.goToLoginPage()])
         photoButton.pack()
         photoButton.bind('<Return>', lambda event: self.saveUserInDb(username))
         photoLabel1 = Label(self, text=photoLabelText1)
@@ -161,8 +160,8 @@ class Register(Frame):
             return False
 
     
-    def goToChatPage(self):
-        self.controller.show_frame("ChatMenu")
+    def goToLoginPage(self):
+        self.controller.show_frame("Login")
         
     
     def savePhoto(self):
