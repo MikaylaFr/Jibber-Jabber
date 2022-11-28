@@ -17,13 +17,9 @@ class Gui(Tk):
         self.frames = {}
         client.ChatGuiInit(container=self.container, main_gui=self)
         
-        #self.frames["ChatRoom"]
         if not admin_login:
-            #LoginGuiInit(container=container, main_gui=self)
-            # self.frames.update(login_frames)
-            # self.db = database
-            #self.show_frame("StartPage")
-            pass
+            LoginGuiInit(container=container, main_gui=self)
+            self.show_frame("StartPage")
         else:
             self.show_frame("ChatMenu")
         
