@@ -4,6 +4,7 @@ import json
 from tkinter import *
 import tkinter.scrolledtext
 from server import Server
+from cryptography.fernet import Fernet
 
 def ChatGuiInit(container, main_gui):
     # Instantiate chat frames
@@ -22,9 +23,7 @@ class ChatMenu(Frame):
         menu_frame = cls()
         Frame.__init__(menu_frame, parent)
         menu_frame.controller = controller
-        #login button
         create_server_button = Button(menu_frame, text="Start Server", command=lambda: controller.show_frame("StartServer"))
-        #register button
         connect_to_server = Button(menu_frame, text="Connect to a Server", command=lambda: controller.show_frame("ConnectToServer"))
         create_server_button.pack()
         connect_to_server.pack()
@@ -35,22 +34,31 @@ class ChatMenu(Frame):
         menu_frame = cls()
         Frame.__init__(menu_frame, parent)
         menu_frame.controller = controller
-        def create_server_local():
-            controller.server = Server.start_server(local=True)
+
+        user_ip_label = Label(menu_frame, text="Server's IP")
+        user_ip_label.pack()
+        user_ip = Entry(menu_frame)
+        user_ip.insert(0, "127.0.0.1")
+        user_ip.pack()
+        user_port_label= Label(menu_frame, text="Server's Port")
+        user_port_label.pack()
+        user_port = Entry(menu_frame)
+        user_port.insert(0, "1234")
+        user_port.pack()
+        if not controller.username:
+            username_label = Label(menu_frame, text="Username - Required")
+            username_label.pack()
+            username = Entry(menu_frame)
+            username.pack()
+        create_server_button = Button(menu_frame, text="Start Server", command=lambda: create_server())
+        create_server_button.pack()
+        def create_server():
+            controller.server = Server.start_server(port=int(user_port.get()), ip=user_ip.get())
             if not controller.username:
-                controller.show_frame("ConnectToServer")
+                controller.client = Client.start_client(controller=controller, ip=controller.server.ip_address, port=controller.server.port, user=username.get())
             else:
-                print(controller.server.ip_address)
-                controller.client = Client.start_client(ip=controller.server.ip_address,user=controller.username, controller=controller)
-                controller.show_frame("ChatRoom")
-        local_ip_button = Button(menu_frame, text="Use Local IP", command=lambda: create_server_local())
-        local_ip_button.pack()
-        public_ip_button = Button(menu_frame, text="Use Public IP", command=lambda: create_server_public())
-        public_ip_button.pack()
-        #TODO Implement getting public ip
-        def create_server_public():
-           pass
-           #controller.server = Server.start_server()  
+                controller.client = Client.start_client(controller=controller, ip=controller.server.ip_address, port=controller.server.port, user=controller.username)
+            controller.show_frame("ChatRoom")
         return menu_frame
 
     @classmethod
@@ -75,6 +83,9 @@ class ChatMenu(Frame):
             user_name.pack()
         submit_button = Button(menu_frame, text="Connect", command=lambda: create_client())
         submit_button.pack()
+        cancel_button = Button(menu_frame, text="Cancel", command=lambda: controller.show_frame("ChatMenu"))
+        cancel_button.pack()
+
         def create_client(ip:str="local", port:int=1234):
             ip=user_ip.get()
             port=int(user_port.get())
@@ -83,29 +94,42 @@ class ChatMenu(Frame):
             controller.show_frame("ChatRoom")
         return menu_frame
 
-    # TODO Implement return to menu
     @classmethod
     def ChatRoom(cls, parent, controller):
         chat_frame = cls()
         Frame.__init__(chat_frame, parent)
         chat_frame.controller = controller
         chat_frame.config(bg="Orange")
+        disconnect_button = Button(chat_frame, text="Disconnect",command=lambda: disconnect(chat_frame.controller))
+        
+        def disconnect(controller):
+            chat_frame.text_area.delete("1.0", "end")
+            controller.client.close_client()
+            del controller.client
+            controller.client = None
+            if controller.server:
+                controller.server.close_server()
+                del controller.server
+                controller.server = None
+            controller.show_frame("ChatMenu")
+
+        disconnect_button.grid(column=8,row=0)
         chat_label = Label(chat_frame, text="Chat Room", bg="Orange")
         chat_label.config(font=("Ubuntu", 14))
-        chat_label.pack(padx=20, pady=5)
-        chat_frame.text_area = tkinter.scrolledtext.ScrolledText(chat_frame, font=("Ubuntu", 12))
-        chat_frame.text_area.pack(padx=20, pady=5)
+        chat_label.grid(column=2,row=0,sticky=N,columnspan=3)
+        chat_frame.text_area = tkinter.scrolledtext.ScrolledText(chat_frame, font=("Ubuntu", 12), wrap=WORD)
         chat_frame.text_area.config(state="disabled")
+        chat_frame.text_area.grid(row=1,column=0,columnspan=9,sticky=N,pady=10,padx=10)
 
         msg_label = Label(chat_frame, text="Message", bg="Orange")
         msg_label.config(font=("Ubuntu", 14))
-        msg_label.pack(padx=20, pady=5)
+        msg_label.grid(row=2,column=2,columnspan=3)
 
-        chat_frame.input_area = Entry(chat_frame, width=100)
-        chat_frame.input_area.pack(padx=10,pady=5)
+        chat_frame.input_area = Text(chat_frame, width=75, height=2,wrap=WORD)
+        chat_frame.input_area.grid(row=3,column=0,columnspan=6,pady=10,padx=10)
 
         send_button = Button(chat_frame, text="Send", command=lambda: controller.client.listen_user_input())
-        send_button.pack()
+        send_button.grid(row=3,column=8,columnspan=1)
         controller.chat_room_running = True
         return chat_frame
 
@@ -117,20 +141,25 @@ class Client:
         self.write_thread = None
         self.read_thread = None
         self.username = None
+        self.lock = threading.Lock()
 
     def print_message(self, msg:str, user:str=None):
         if self.controller.chat_room_running:
+            self.lock.acquire()
             text_area = self.controller.frames["ChatRoom"].text_area
             text_area.config(state="normal")
             if user == "self":
-                full_msg = "You: " + msg + '\n'
+                full_msg = "You: " + msg
             elif user:
-                full_msg = user + ":  " + msg + '\n'
+                # Decrypt message
+                msg = self.fernet_key.decrypt(msg).decode()
+                full_msg = user + ":  " + msg
             else:
                 full_msg = msg + '\n'
             text_area.insert('end', full_msg)
             text_area.yview('end')
             text_area.config(state="disabled")
+            self.lock.release()
 
     def set_username(self, name:str):
         self.username = name
@@ -141,7 +170,10 @@ class Client:
 
     def send_message_to_server(self, msg:str):
         try:
-            self.socket.send(msg.encode("utf-8"))
+            if type(msg) != bytes:
+                self.socket.send(msg.encode("utf-8"))
+            else:
+                self.socket.send(msg)
         except Exception as err:
             print(f"Could not send message to server Exception: {err}") 
 
@@ -158,6 +190,10 @@ class Client:
         else:
             self.print_message(msg["msg"])
     
+    def handle_key(self, msg):
+        self.encrypt_key = bytes(msg["key"], "utf-8")
+        self.fernet_key = Fernet(self.encrypt_key)
+    
     def handle_message(self, msg:str):
         # Convert message to dict
         message = json.loads(msg)
@@ -169,24 +205,27 @@ class Client:
             self.handle_stat(message)
         elif type_msg == "CHAT":
             self.print_message(message["msg"], message["user"])
+        elif type_msg == "KEY":
+            self.handle_key(message)
 
     def listen_to_server(self):
         while True:
             try:
                 message = self.socket.recv(self.buffer_size).decode("utf-8")
+                self.handle_message(message)
             except Exception as err:
                 self.print_message(msg="Lost connection to server...", user="self")
                 self.socket.close()
                 self.socket = None
                 break
-            self.handle_message(message)
 
     def listen_user_input(self):
         if self.socket:
             chat_frame = self.controller.frames["ChatRoom"]
-            chat = chat_frame.input_area.get()
-            chat_frame.input_area.delete(0, END)
-            self.send_message_to_server(chat)
+            chat = chat_frame.input_area.get("1.0",END)
+            chat_frame.input_area.delete("1.0", END)
+            encrypted_chat = self.fernet_key.encrypt(bytes(chat, "utf-8"))
+            self.send_message_to_server(encrypted_chat)
             self.print_message(msg=chat, user="self")
 
     @classmethod
@@ -201,4 +240,5 @@ class Client:
         return new_client
 
     def close_client(self):
-        self.socket.close()
+        if self.socket:
+            self.socket.close()
