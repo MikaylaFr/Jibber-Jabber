@@ -103,6 +103,7 @@ class ChatMenu(Frame):
         disconnect_button = Button(chat_frame, text="Disconnect",command=lambda: disconnect(chat_frame.controller))
         
         def disconnect(controller):
+            chat_frame.text_area.delete("1.0", "end")
             controller.client.close_client()
             del controller.client
             controller.client = None
@@ -110,7 +111,6 @@ class ChatMenu(Frame):
                 controller.server.close_server()
                 del controller.server
                 controller.server = None
-            controller.frames["ChatRoom"].text_area.delete("1.0", "end")
             controller.show_frame("ChatMenu")
 
         disconnect_button.grid(column=8,row=0)
@@ -196,7 +196,6 @@ class Client:
     
     def handle_message(self, msg:str):
         # Convert message to dict
-        print(msg)
         message = json.loads(msg)
         type_msg = message["type"]
 
