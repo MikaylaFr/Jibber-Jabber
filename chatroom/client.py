@@ -89,7 +89,7 @@ class ChatMenu(Frame):
         def create_client(ip:str="local", port:int=1234):
             ip=user_ip.get()
             port=int(user_port.get())
-            username = controller.user_name
+            username = controller.username
             controller.client=Client.start_client(ip=ip,controller=controller,user=username,port=port)
             controller.show_frame("ChatRoom")
 
@@ -216,6 +216,7 @@ class Client:
         while True:
             try:
                 message = self.socket.recv(self.buffer_size).decode("utf-8")
+                print("message:" + message)
                 self.handle_message(message)
                 print("message:" + message)
             except Exception as err:

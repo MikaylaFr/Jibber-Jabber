@@ -3,6 +3,7 @@ import socket
 from datetime import datetime
 import json
 from cryptography.fernet import Fernet
+import time
 
 
 # Resources:
@@ -81,6 +82,7 @@ class Server:
         try:
             print_log("Sending key")
             client_socket.send(bytes(json.dumps(message), encoding="utf-8"))
+            time.sleep(0.1)
         except Exception as err:
             print_log("Failed to send key", err)
             return 1
