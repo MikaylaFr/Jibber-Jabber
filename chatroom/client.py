@@ -45,17 +45,17 @@ class ChatMenu(Frame):
         user_port = Entry(menu_frame)
         user_port.insert(0, "1234")
         user_port.pack()
-        if not controller.username:
-            username_label = Label(menu_frame, text="Username - Required")
-            username_label.pack()
-            username = Entry(menu_frame)
-            username.pack()
+        #if not controller.username:
+            #username_label = Label(menu_frame, text="Username - Required")
+            #username_label.pack()
+            #username = Entry(menu_frame)
+            #username.pack()
         create_server_button = Button(menu_frame, text="Start Server", command=lambda: create_server())
         create_server_button.pack()
         def create_server():
             controller.server = Server.start_server(port=int(user_port.get()), ip=user_ip.get())
             if not controller.username:
-                controller.client = Client.start_client(controller=controller, ip=controller.server.ip_address, port=controller.server.port, user=username.get())
+                controller.client = Client.start_client(controller=controller, ip=controller.server.ip_address, port=controller.server.port, user=controller.username)
             else:
                 controller.client = Client.start_client(controller=controller, ip=controller.server.ip_address, port=controller.server.port, user=controller.username)
             controller.show_frame("ChatRoom")
@@ -76,11 +76,11 @@ class ChatMenu(Frame):
         user_port = Entry(menu_frame)
         user_port.insert(0, "1234")
         user_port.pack()
-        if not controller.username:
-            user_name_label= Label(menu_frame, text="Username - Required")
-            user_name_label.pack()
-            user_name = Entry(menu_frame)
-            user_name.pack()
+        #if not controller.username:
+            #user_name_label= Label(menu_frame, text="Username - Required")
+            #user_name_label.pack()
+            #user_name = Entry(menu_frame)
+            #user_name.pack()
         submit_button = Button(menu_frame, text="Connect", command=lambda: create_client())
         submit_button.pack()
         cancel_button = Button(menu_frame, text="Cancel", command=lambda: controller.show_frame("ChatMenu"))
@@ -89,10 +89,14 @@ class ChatMenu(Frame):
         def create_client(ip:str="local", port:int=1234):
             ip=user_ip.get()
             port=int(user_port.get())
-            username = user_name.get()
+            username = controller.user_name
             controller.client=Client.start_client(ip=ip,controller=controller,user=username,port=port)
             controller.show_frame("ChatRoom")
+
         return menu_frame
+    
+
+    
 
     @classmethod
     def ChatRoom(cls, parent, controller):
@@ -213,8 +217,10 @@ class Client:
             try:
                 message = self.socket.recv(self.buffer_size).decode("utf-8")
                 self.handle_message(message)
+                print("message:" + message)
             except Exception as err:
                 self.print_message(msg="Lost connection to server...", user="self")
+                print(str(err))
                 self.socket.close()
                 self.socket = None
                 break

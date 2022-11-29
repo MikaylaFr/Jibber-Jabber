@@ -74,6 +74,8 @@ class Login(Frame):
                 userDocument = doc.to_dict()
             # fetch the blob from the document fields dictionary
             blobFromDb = userDocument.get('photo')
+            self.controller.username = username.get()
+            #print(self.controller.username)
             convert_to_image(blobFromDb)
         else:
             print("username not found")
